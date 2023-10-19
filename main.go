@@ -35,11 +35,11 @@ func main() {
 	userController := &controllers.UserController{}
 	registerController := &controllers.RegisterController{RegisterService: registerService}
 
-	authGroup := engine.Group("/auth")
+	authGroup := engine.Group("/v1/auth")
 	authGroup.POST("/sendCode", authController.SignIn)
 	authGroup.POST("/confirm", authController.CheckOTP)
 
-	registerGroup := engine.Group("/register")
+	registerGroup := engine.Group("/v1/register")
 	registerGroup.POST("/sendCode", registerController.StartRegistration)
 	registerGroup.POST("/confirm", registerController.CheckOTP)
 	registerGroup.POST("/finish", registerController.Finish)
