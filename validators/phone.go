@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrBadPhoneNumber = errors.New("validation error: bad phone number")
+	ErrBadPhoneNumber = errors.New("validation error: bad phone number, must be 7XXXXXXXXXX")
 )
 
 func PhoneNumber(number string) error {
