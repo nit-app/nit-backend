@@ -1,16 +1,24 @@
 package main
 
 import (
+	"errors"
 	"github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/nit-app/nit-backend/controllers"
+	"github.com/nit-app/nit-backend/env"
 	_ "github.com/nit-app/nit-backend/env/autoload"
 	"github.com/nit-app/nit-backend/services"
 	"github.com/nit-app/nit-backend/services/otp"
 	"github.com/nit-app/nit-backend/services/sms"
 	"github.com/nit-app/nit-backend/sessions"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -24,7 +32,12 @@ func main() {
 	engine := gin.Default()
 	engine.Use(ginzap.Ginzap(zap.L(), time.RFC3339, true))
 	engine.Use(ginzap.RecoveryWithZap(zap.L(), true))
+
 	engine.Use(sessions.SessionKeeper)
+	setCors(engine)
+
+	engine.StaticFile("/docs.yaml", "schema/docs.yaml")
+	engine.GET("/swg/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("../docs.yaml")))
 
 	userService := &services.UserService{}
 	otpService := &services.OtpService{Generator: otp.NewGenerator(), Carrier: sms.NewCarrier()}
@@ -49,5 +62,22 @@ func main() {
 
 	v1.GET("/getMe", userController.GetMe)
 
-	engine.Run(":8000")
+	server := &http.Server{
+		Addr:    env.E().ListenAddress,
+		Handler: engine,
+	}
+
+	sig := make(chan os.Signal, 1)
+	go shutdown(sig, server)
+
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
+
+	zap.S().Infow("starting", "addr", server.Addr)
+	if err := server.ListenAndServe(); err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			return
+		}
+
+		zap.L().Fatal("listen error", zap.Error(err))
+	}
 }
