@@ -7,7 +7,7 @@ import (
 )
 
 func shutdown(c chan os.Signal, s io.Closer) {
-	zap.S().Info("stopping application")
 	<-c
+	zap.S().Info("stopping")
 	_ = s.Close()
 }
