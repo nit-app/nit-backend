@@ -11,8 +11,8 @@ import (
 	"github.com/nit-app/nit-backend/services/otp"
 	"github.com/nit-app/nit-backend/services/sms"
 	"github.com/nit-app/nit-backend/sessions"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"net/http"
@@ -23,6 +23,8 @@ import (
 )
 
 func main() {
+	defer env.Shutdown()
+
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	logger, _ := config.Build()
@@ -37,7 +39,7 @@ func main() {
 	setCors(engine)
 
 	engine.StaticFile("/docs.yaml", "schema/docs.yaml")
-	engine.GET("/swg/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("../docs.yaml")))
+	engine.GET("/swagger-ui/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("../docs.yaml")))
 
 	userService := &services.UserService{}
 	otpService := &services.OtpService{Generator: otp.NewGenerator(), Carrier: sms.NewCarrier()}
@@ -51,6 +53,7 @@ func main() {
 	authGroup := engine.Group("/v1/auth")
 	authGroup.POST("/sendCode", authController.SignIn)
 	authGroup.POST("/confirm", authController.CheckOTP)
+	authGroup.GET("/revoke", authController.Revoke)
 
 	registerGroup := engine.Group("/v1/register")
 	registerGroup.POST("/sendCode", registerController.StartRegistration)

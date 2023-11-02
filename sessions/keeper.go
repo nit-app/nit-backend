@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	cookieName = "isomiso"
+	CookieName = "isomiso"
 	ttlSecs    = 60 * 60 * 24 * 14
 )
 
@@ -18,7 +18,7 @@ func SessionKeeper(c *gin.Context) {
 		return
 	}
 
-	token, err := c.Cookie(cookieName)
+	token, err := c.Cookie(CookieName)
 
 	if err != nil {
 		token = resetSession(c)
@@ -44,7 +44,7 @@ func resetSession(c *gin.Context) string {
 		panic(err)
 	}
 
-	c.SetCookie(cookieName, token, ttlSecs, "/", "", false, true)
+	c.SetCookie(CookieName, token, ttlSecs, "/", "", false, true)
 	return token
 }
 
