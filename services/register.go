@@ -16,12 +16,7 @@ func (as *RegisterService) Start(session *sessions.Session, phoneNumber string) 
 }
 
 func (as *RegisterService) CheckOTP(session *sessions.Session, otpCode string) error {
-	err := as.OTP.CheckOTP(session, otpCode, sessions.StateRegEnterOtp, sessions.StateRegFinish)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return as.OTP.CheckOTP(session, otpCode, sessions.StateRegEnterOtp, sessions.StateRegFinish)
 }
 
 func (as *RegisterService) Finish(session *sessions.Session, firstName string, lastName *string) (string, error) {
