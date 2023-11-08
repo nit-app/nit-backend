@@ -1,27 +1,15 @@
-# syntax=docker/dockerfile:1
-
-FROM golang:1.20
+FROM debian:11.7
 
 # Set destination for COPY
 WORKDIR /app
 
-# Download Go modules
-COPY go.mod go.sum ./
-RUN go mod download
+ARG BIN=/target/nit
+ARG SCHEMA=/schema/docs.yaml
+COPY ${BIN} ./
+COPY ${SCHEMA} ./schema/docs.yaml
 
-# Copy the source code. Note the slash at the end, as explained in
-# https://docs.docker.com/engine/reference/builder/#copy
-COPY * ./
+RUN chmod +x nit
 
-# Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /nit-app
-
-# Optional:
-# To bind to a TCP port, runtime parameters must be supplied to the docker command.
-# But we can document in the Dockerfile what ports
-# the application is going to listen on by default.
-# https://docs.docker.com/engine/reference/builder/#expose
 EXPOSE 8080
 
-# Run
-CMD ["/nit-app"]
+CMD ["/app/nit"]
