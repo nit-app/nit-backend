@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: nIT - OpenAPI 3.0
+  description: >-
+    This is nIT API documentation.
+  version: '1.0.0'
+servers:
+  - url: /v1
+tags:
+  - name: auth
+    description: Auth
+  - name: register
+    description: Register a new user
+  - name: user
+    description: Operations about user
+paths:
+  /auth/sendCode:
+    post:
+      tags:
+        - auth
+      summary: Send OTP code
+      operationId: authSendCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendCodeRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+  /auth/confirm:
+    post:
+      tags:
+        - auth
+      summary: Confirm OTP code
+      operationId: authConfirmCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmOTPRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+  /auth/revoke:
+    get:
+      tags:
+        - auth
+      summary: Deactivate current session token and log out
+      operationId: authRevokeSession
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+
+  /register/sendCode:
+    post:
+      tags:
+        - register
+      summary: Send OTP code
+      operationId: regSendCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendCodeRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+  /register/confirm:
+    post:
+      tags:
+        - register
+      summary: Confirm OTP code
+      operationId: regConfirmCode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmOTPRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+  /register/finish:
+    post:
+      tags:
+        - register
+      summary: Complete registration process
+      operationId: regFinish
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinishRegistrationRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+  /getMe:
+    get:
+      tags:
+        - user
+      summary: Get current user profile
+      description: Get current user profile
+      operationId: getMe
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StringResponse'
+
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+
+components:
+  schemas:
+    Ok:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        object:
+          type: boolean
+          format: boolean
+        status:
+          type: integer
+          format: int32
+          example: 200
+
+    StringResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        object:
+          type: string
+          format: string
+        status:
+          type: integer
+          format: int32
+          example: 200
+
+
+    SendCodeRequest:
+      type: object
+      required:
+        - phoneNumber
+      properties:
+        phoneNumber:
+          type: string
+          format: string
+          example: '71112223344'
+
+    ConfirmOTPRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          format: number
+          example: '43251'
+
+    FinishRegistrationRequest:
+      type: object
+      required:
+        - firstName
+
+      properties:
+        firstName:
+          type: string
+          format: string
+          example: 'Ivan'
+        lastName:
+          type: string
+          format: string
+          example: 'Petrov'
+
+  requestBodies:
+
+    SendCodeRequest:
+      description: Phone number object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SendCodeRequest'
+
+    FinishRegistrationRequest:
+      description: Basic user information
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FinishRegistrationRequest'
+
+    ConfirmOTPRequest:
+      description: Confirm OTP request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConfirmOTPRequest'
+
+

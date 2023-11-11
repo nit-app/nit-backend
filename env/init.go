@@ -1,7 +1,6 @@
 package env
 
 import (
-	"context"
 	_ "github.com/joho/godotenv/autoload"
 	"os"
 	"sync"
@@ -25,11 +24,12 @@ func Init() {
 		redis := loadRedis()
 
 		env = &Env{}
+		defer env.Validate()
+
 		env.DB = db
 		env.Redis = redis
 
 		env.CarrierMethod = os.Getenv(OptionCarrierMethod)
 		env.OtpMockAcceptCode = os.Getenv(OptionOtpAcceptCode)
 	})
-	context.Background()
 }

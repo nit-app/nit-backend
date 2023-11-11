@@ -6,8 +6,14 @@ import (
 	"time"
 )
 
+const timeoutDuration = 3 * time.Second
+
 func (s *Session) Save() {
-	timeout, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	if len(s.tokHash) == 0 {
+		panic("bad session object")
+	}
+
+	timeout, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 	defer cancel()
 
 	params := []any{"state", s.State, "iat", s.Authorized}

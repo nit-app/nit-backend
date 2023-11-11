@@ -1,7 +1,13 @@
 package env
 
 func (e *Env) Shutdown() {
-	_ = e.DB.Close()
+	if e.DB != nil {
+		_ = e.DB.Close()
+	}
+
+	if e.Redis != nil {
+		_ = e.Redis.Close()
+	}
 }
 
 func Shutdown() {
