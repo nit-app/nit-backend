@@ -13,13 +13,12 @@ type Generator interface {
 type secureRandomGenerator struct{}
 
 func (srg *secureRandomGenerator) Generate() string {
-	b := make([]byte, 3)
-
+	b := make([]byte, 4)
 	if _, err := rand.Read(b); err != nil {
 		panic(err)
 	}
 
-	return fmt.Sprintf("%d%d%d", b[0], b[1], b[2])
+	return fmt.Sprintf("%d%d%d%d", b[0]%10, b[1]%10, b[2]%10, b[3]%10)
 }
 
 type mockGenerator struct{}
