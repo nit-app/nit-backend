@@ -36,7 +36,9 @@ func main() {
 	engine.Use(ginzap.RecoveryWithZap(zap.L(), true))
 
 	engine.Use(sessions.SessionKeeper)
+
 	setCors(engine)
+	engine.Use(controllers.CORS)
 
 	engine.StaticFile("/docs.yaml", "schema/docs.yaml")
 	engine.GET("/swagger-ui/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("../docs.yaml")))
