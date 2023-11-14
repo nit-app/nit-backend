@@ -13,11 +13,13 @@ type OtpService struct {
 	Carrier   sms.Carrier
 }
 
-func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextState string) error {
-	if session.State != sessions.StateUnauthorized {
-		return errBadSignInState
-	}
+var (
+	errBadOtpState         = errors.New("bad otp state")
+	errOtpAttemptsExceeded = errors.New("otp attempts exceeded")
+	errBadOtpCode          = errors.New("bad otp code")
+)
 
+func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextState string) error {
 	if err := validators.PhoneNumber(phoneNumber); err != nil {
 		return err
 	}
@@ -45,12 +47,12 @@ func (os *OtpService) CheckOTP(session *sessions.Session, otpCode string, expect
 		session.State = sessions.StateUnauthorized
 		session.OTP = nil
 
-		return errors.New("otp attempts exceeded")
+		return errOtpAttemptsExceeded
 	}
 
 	if session.OTP.Code != otpCode {
 		session.OTP.Attempt++
-		return errors.New("bad otp code")
+		return errBadOtpCode
 	}
 
 	session.State = nextState
