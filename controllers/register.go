@@ -7,7 +7,6 @@ import (
 	"github.com/nit-app/nit-backend/response"
 	"github.com/nit-app/nit-backend/services"
 	"github.com/nit-app/nit-backend/sessions"
-	"net/http"
 )
 
 type RegisterController struct {
@@ -30,11 +29,7 @@ func (rc *RegisterController) Finish(c *gin.Context) {
 		return
 	}
 
-	var req requests.FinishRegistrationRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
-		return
-	}
+	req := GetRequestData[requests.FinishRegistrationRequest](c)
 
 	_, err := rc.RegisterService.Finish(session, req.FirstName, req.LastName)
 	if err != nil {
@@ -42,5 +37,5 @@ func (rc *RegisterController) Finish(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Ok(true))
+	c.JSON(response.Ok(true))
 }
