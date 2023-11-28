@@ -1,7 +1,7 @@
 package requests
 
 type PhoneNumberRequest struct {
-	PhoneNumber string `form:"phoneNumber" json:"phoneNumber" binding:"required,min=10,max=12"`
+	PhoneNumber string `form:"phoneNumber" json:"phoneNumber" binding:"required,min=10,max=12,ruPhoneNumber"`
 }
 
 type OtpCheckRequest struct {

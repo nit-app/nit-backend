@@ -1,19 +1,16 @@
 package validators
 
 import (
-	"errors"
+	"github.com/go-playground/validator/v10"
 	"strconv"
 )
 
-var (
-	ErrBadPhoneNumber = errors.New("validation error: bad phone number, must be 7XXXXXXXXXX")
-)
-
-func PhoneNumber(number string) error {
+func ruPhoneNumber(fl validator.FieldLevel) bool {
+	number := fl.Field().String()
 	if len(number) != 11 || number[0] != '7' {
-		return ErrBadPhoneNumber
+		return false
 	}
 
 	_, err := strconv.Atoi(number)
-	return err
+	return err == nil
 }

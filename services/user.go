@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/nit-app/nit-backend/env"
-	"github.com/nit-app/nit-backend/validators"
 	"time"
 )
 
@@ -17,10 +16,6 @@ var (
 )
 
 func (us *UserService) GetUuidByPhoneNumber(phoneNumber string) (string, error) {
-	if err := validators.PhoneNumber(phoneNumber); err != nil {
-		return "", err
-	}
-
 	row := env.DB().QueryRow("select uuid from users where phoneNumber = $1", phoneNumber)
 
 	var userUuid string
