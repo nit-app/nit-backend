@@ -15,8 +15,6 @@ type AuthController struct {
 type OtpDelegate interface {
 	Start(session *sessions.Session, phoneNumber string) error
 	CheckOTP(session *sessions.Session, otpCode string) error
-	OtpCheckState() string
-	BadStateStatus() string
 }
 
 func (ac *AuthController) SignIn(c *gin.Context) {

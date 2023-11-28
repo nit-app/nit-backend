@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"errors"
-	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/sessions"
 )
 
@@ -36,12 +35,4 @@ func (as *AuthService) CheckOTP(session *sessions.Session, otpCode string) error
 	sessions.SetAuthorized(session, subject)
 
 	return nil
-}
-
-func (as *AuthService) OtpCheckState() string {
-	return sessions.StateEnterOtp
-}
-
-func (as *AuthService) BadStateStatus() string {
-	return status.BadSignInState
 }

@@ -3,8 +3,7 @@ package status
 import "net/http"
 
 const (
-	BadSignInState      = "BAD_SIGN_IN_STATE"
-	BadRegisterState    = "BAD_REGISTER_STATE"
+	BadFormState        = "BAD_FORM_STATE"
 	Unauthorized        = "UNAUTHORIZED"
 	InvalidDataFormat   = "INVALID_DATA_FORMAT"
 	BadRegistrationData = "BAD_REGISTRATION_DATA"
@@ -12,4 +11,4 @@ const (
 	OtpCheckingError    = "OTP_CHECKING_ERROR"
 )
 
-var Codes = map[string]int{Unauthorized: http.StatusUnauthorized}
+var Codes = map[string]int{Unauthorized: http.StatusUnauthorized, OtpCheckingError: http.StatusUnauthorized}

@@ -26,19 +26,19 @@ func (rc *RegisterController) Finish(c *gin.Context) {
 	session := sessions.Current(c)
 
 	if session.State != sessions.StateRegFinish {
-		c.JSON(http.StatusBadRequest, response.Error(status.BadRegisterState))
+		c.JSON(response.Error(status.BadFormState))
 		return
 	}
 
 	var req requests.FinishRegistrationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorWithText(status.InvalidDataFormat, err.Error()))
+		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
 		return
 	}
 
 	_, err := rc.RegisterService.Finish(session, req.FirstName, req.LastName)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorWithText(status.BadRegistrationData, err.Error())) // catches db issues, reconsider logging
+		c.JSON(response.ErrorWithText(status.BadRegistrationData, err.Error())) // catches db issues, reconsider logging
 		return
 	}
 

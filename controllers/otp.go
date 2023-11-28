@@ -11,18 +11,18 @@ import (
 
 func sendOtp(c *gin.Context, delegate OtpDelegate) {
 	if sessions.State(c) != sessions.StateUnauthorized {
-		c.JSON(http.StatusBadRequest, response.Error(delegate.BadStateStatus()))
+		c.JSON(response.Error(status.BadFormState))
 		return
 	}
 
 	var req requests.PhoneNumberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorWithText(status.InvalidDataFormat, err.Error()))
+		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
 		return
 	}
 
 	if err := delegate.Start(sessions.Current(c), req.PhoneNumber); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorWithText(status.OtpDeliveryError, err.Error()))
+		c.JSON(response.ErrorWithText(status.OtpDeliveryError, err.Error()))
 		return
 	}
 
@@ -30,19 +30,15 @@ func sendOtp(c *gin.Context, delegate OtpDelegate) {
 }
 
 func checkOtp(c *gin.Context, delegate OtpDelegate) {
-	if sessions.State(c) != delegate.OtpCheckState() {
-		c.JSON(http.StatusBadRequest, response.Error(delegate.BadStateStatus()))
-		return
-	}
 
 	var req requests.OtpCheckRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorWithText(status.InvalidDataFormat, err.Error()))
+		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
 		return
 	}
 
 	if err := delegate.CheckOTP(sessions.Current(c), req.Code); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorWithText(status.OtpCheckingError, err.Error()))
+		c.JSON(response.ErrorWithText(status.OtpCheckingError, err.Error()))
 		return
 	}
 

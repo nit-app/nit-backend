@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/response"
-	"net/http"
 )
 
 const (
@@ -32,7 +31,7 @@ func SessionKeeper(c *gin.Context) {
 func RequireAuth(c *gin.Context) {
 	sessionRaw, ok := c.Get(SessionKey)
 	if !ok || sessionRaw.(*Session).State != StateAuthorized {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Error(status.Unauthorized))
+		c.AbortWithStatusJSON(response.Error(status.Unauthorized))
 		return
 	}
 

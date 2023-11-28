@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/sessions"
 )
 
@@ -27,12 +26,4 @@ func (as *RegisterService) Finish(session *sessions.Session, firstName string, l
 	sessions.SetAuthorized(session, newUserUuid)
 
 	return newUserUuid, nil
-}
-
-func (as *RegisterService) OtpCheckState() string {
-	return sessions.StateRegEnterOtp
-}
-
-func (as *RegisterService) BadStateStatus() string {
-	return status.BadRegisterState
 }

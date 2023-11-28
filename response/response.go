@@ -13,14 +13,15 @@ func Ok[T any](object T) *responses.BaseResponse[T] {
 	return &responses.BaseResponse[T]{Object: object, Timestamp: time.Now(), Status: http.StatusOK}
 }
 
-func Error(code string) *responses.ErrorResponse {
+func Error(code string) (int, *responses.ErrorResponse) {
 	return ErrorWithText(code, "")
 }
 
-func ErrorWithText(code, text string) *responses.ErrorResponse {
+func ErrorWithText(code, text string) (int, *responses.ErrorResponse) {
 	resp := &responses.ErrorResponse{Code: code}
-	resp.BaseResponse = responses.BaseResponse[*struct{}]{Timestamp: time.Now(), Status: getStatus(code), Text: text}
-	return resp
+	statusCode := getStatus(code)
+	resp.BaseResponse = responses.BaseResponse[*struct{}]{Timestamp: time.Now(), Status: statusCode, Text: text}
+	return statusCode, resp
 }
 
 func getStatus(code string) int {
