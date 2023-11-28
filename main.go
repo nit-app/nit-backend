@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -75,7 +74,7 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	go shutdown(sig, server)
 
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGKILL)
+	signal.Notify(sig, getShutdownSignals()...)
 
 	zap.S().Infow("starting", "addr", server.Addr)
 	if err := server.ListenAndServe(); err != nil {

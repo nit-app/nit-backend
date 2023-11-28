@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/nit-app/nit-backend/models/requests"
+	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/response"
 	"github.com/nit-app/nit-backend/services"
 	"github.com/nit-app/nit-backend/sessions"
@@ -25,23 +26,21 @@ func (rc *RegisterController) Finish(c *gin.Context) {
 	session := sessions.Current(c)
 
 	if session.State != sessions.StateRegFinish {
-		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, "bad register state"))
+		c.JSON(response.Error(status.BadFormState))
 		return
 	}
 
 	var req requests.FinishRegistrationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, err.Error()))
+		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
 		return
 	}
 
-	userUuid, err := rc.RegisterService.Finish(session, req.FirstName, req.LastName)
+	_, err := rc.RegisterService.Finish(session, req.FirstName, req.LastName)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, response.Error(http.StatusBadRequest, err.Error())) // catches db issues, reconsider logging
+		c.JSON(response.ErrorWithText(status.BadRegistrationData, err.Error())) // catches db issues, reconsider logging
 		return
 	}
-
-	sessions.SetAuthorized(session, userUuid)
 
 	c.JSON(http.StatusOK, response.Ok(true))
 }
