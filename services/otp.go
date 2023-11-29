@@ -5,7 +5,6 @@ import (
 	"github.com/nit-app/nit-backend/services/otp"
 	"github.com/nit-app/nit-backend/services/sms"
 	"github.com/nit-app/nit-backend/sessions"
-	"github.com/nit-app/nit-backend/validators"
 )
 
 type OtpService struct {
@@ -20,10 +19,6 @@ var (
 )
 
 func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextState string) error {
-	if err := validators.PhoneNumber(phoneNumber); err != nil {
-		return err
-	}
-
 	otpCode := os.Generator.Generate()
 	session.OTP = &sessions.OtpState{
 		Code:        otpCode,
