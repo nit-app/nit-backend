@@ -12,17 +12,43 @@ import (
 
 func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*responses.EventHeader, error) {
 	const query = `
-		select 
-    			e.uuid, e.title,
-       			e.priceLow, e.priceHigh, e.ageLimitLow, e.ageLimitHigh,
-       			e.location, e.ownerInfo, string_agg(distinct et.tag, ',') as tags,
-       			e.createdat, e.modifiedat, es.beginsat, es.endsat, es.addedat, es.scheduleuuid
-		from events e
-    	join event_tags et on e.uuid = et.uuid
-		inner join event_schedule es on e.uuid = es."eventUuid" and es.beginsat >= $3 and es.endsat <= $4
+		select
+			e.uuid,
+			e.title,
+			e.priceLow,
+			e.priceHigh,
+			e.ageLimitLow,
+			e.ageLimitHigh,
+			e.location,
+			e.ownerInfo,
+			string_agg(distinct et.tag, ',') as tags,
+			e.createdat,
+			e.modifiedat,
+			es.beginsat,
+			es.endsat,
+			es.addedat,
+			es.scheduleuuid
+		from
+			events e
+		join event_tags et on
+			e.uuid = et.uuid
+		inner join event_schedule es on
+			e.uuid = es."eventUuid"
+			and es.beginsat >= $3
+			and es.endsat <= $4
 		where 
-		    e.deletedat is null and e.agelimitlow <= $1 and e.pricelow <= $2
-		group by e.uuid, e.favcount, es.scheduleuuid, es.addedat, es.beginsat, es.endsat order by e.favcount`
+					e.deletedat is null
+			and e.agelimitlow <= $1
+			and e.pricelow <= $2
+		group by
+			e.uuid,
+			e.favcount,
+			es.scheduleuuid,
+			es.addedat,
+			es.beginsat,
+			es.endsat
+		order by
+			e.favcount`
 
 	ageLimitLowFilter := 100
 	if filters.ExcludeAgeRestricted {
