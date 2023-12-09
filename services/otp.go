@@ -1,11 +1,12 @@
 package services
 
 import (
-	"errors"
+	stdErrors "errors"
+	"github.com/nit-app/nit-backend/errors"
+	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/services/otp"
 	"github.com/nit-app/nit-backend/services/sms"
 	"github.com/nit-app/nit-backend/sessions"
-	"github.com/nit-app/nit-backend/validators"
 )
 
 type OtpService struct {
@@ -14,16 +15,12 @@ type OtpService struct {
 }
 
 var (
-	errBadOtpState         = errors.New("bad otp state")
-	errOtpAttemptsExceeded = errors.New("otp attempts exceeded")
-	errBadOtpCode          = errors.New("bad otp code")
+	errBadOtpState         = errors.New(status.BadFormState, stdErrors.New("bad otp state"))
+	errOtpAttemptsExceeded = errors.New(status.OtpCheckingError, stdErrors.New("otp attempts exceeded"))
+	errBadOtpCode          = errors.New(status.OtpCheckingError, stdErrors.New("bad otp code"))
 )
 
 func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextState string) error {
-	if err := validators.PhoneNumber(phoneNumber); err != nil {
-		return err
-	}
-
 	otpCode := os.Generator.Generate()
 	session.OTP = &sessions.OtpState{
 		Code:        otpCode,

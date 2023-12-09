@@ -193,7 +193,7 @@ components:
         code:
           type: string
           format: number
-          example: '43251'
+          example: '5731'
 
     FinishRegistrationRequest:
       type: object

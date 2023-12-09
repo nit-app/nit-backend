@@ -1,11 +1,12 @@
 package services
 
 import (
+	"github.com/nit-app/nit-backend/services/user"
 	"github.com/nit-app/nit-backend/sessions"
 )
 
 type RegisterService struct {
-	UserService *UserService
+	UserService *user.Service
 	OTP         *OtpService
 }
 

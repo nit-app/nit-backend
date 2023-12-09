@@ -9,6 +9,8 @@ const (
 	BadRegistrationData = "BAD_REGISTRATION_DATA"
 	OtpDeliveryError    = "OTP_DELIVERY_ERROR"
 	OtpCheckingError    = "OTP_CHECKING_ERROR"
+	InternalServerError = "INTERNAL_SERVER_ERROR"
 )
 
-var Codes = map[string]int{Unauthorized: http.StatusUnauthorized, OtpCheckingError: http.StatusUnauthorized}
+var Codes = map[string]int{Unauthorized: http.StatusUnauthorized, OtpCheckingError: http.StatusUnauthorized,
+	InternalServerError: http.StatusInternalServerError}

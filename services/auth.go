@@ -3,13 +3,16 @@ package services
 import (
 	"database/sql"
 	"errors"
+	"github.com/nit-app/nit-backend/services/user"
 	"github.com/nit-app/nit-backend/sessions"
 )
 
 type AuthService struct {
 	OTP         *OtpService
-	UserService *UserService
+	UserService *user.Service
 }
+
+var errNoUserFoundByNumber = errors.New("no user is created with this phone number")
 
 const maxOtpAttempts = 5
 

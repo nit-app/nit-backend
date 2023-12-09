@@ -6,7 +6,6 @@ import (
 	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/response"
 	"github.com/nit-app/nit-backend/sessions"
-	"net/http"
 )
 
 func sendOtp(c *gin.Context, delegate OtpDelegate) {
@@ -15,32 +14,23 @@ func sendOtp(c *gin.Context, delegate OtpDelegate) {
 		return
 	}
 
-	var req requests.PhoneNumberRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
-		return
-	}
+	req := GetRequestData[requests.PhoneNumberRequest](c)
 
 	if err := delegate.Start(sessions.Current(c), req.PhoneNumber); err != nil {
-		c.JSON(response.ErrorWithText(status.OtpDeliveryError, err.Error()))
+		_ = c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Ok(true))
+	c.JSON(response.Ok(true))
 }
 
 func checkOtp(c *gin.Context, delegate OtpDelegate) {
-
-	var req requests.OtpCheckRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
-		return
-	}
+	req := GetRequestData[requests.OtpCheckRequest](c)
 
 	if err := delegate.CheckOTP(sessions.Current(c), req.Code); err != nil {
-		c.JSON(response.ErrorWithText(status.OtpCheckingError, err.Error()))
+		_ = c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Ok(true))
+	c.JSON(response.Ok(true))
 }

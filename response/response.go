@@ -9,8 +9,8 @@ import (
 
 const defaultStatus = http.StatusBadRequest
 
-func Ok[T any](object T) *responses.BaseResponse[T] {
-	return &responses.BaseResponse[T]{Object: object, Timestamp: time.Now(), Status: http.StatusOK}
+func Ok[T any](object T) (int, *responses.BaseResponse[T]) {
+	return http.StatusOK, &responses.BaseResponse[T]{Object: object, Timestamp: time.Now(), Status: http.StatusOK}
 }
 
 func Error(code string) (int, *responses.ErrorResponse) {
