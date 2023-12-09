@@ -13,6 +13,8 @@ tags:
     description: Register a new user
   - name: user
     description: Operations about user
+  - name: events
+    description: Lookup events
 paths:
   /auth/sendCode:
     post:
@@ -144,8 +146,103 @@ paths:
         '400':
           description: Bad request
 
+  /events/lookup:
+    post:
+      tags:
+        - events
+      summary: Search for events by filters
+      operationId: eventsLookup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+
 components:
   schemas:
+
+    EventsResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        object:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventHeaderResponse'
+        status:
+          type: integer
+          format: int32
+          example: 200
+
+    EventHeaderResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: "b141fa84-8e25-11ee-8542-fa163e445fa2"
+        title:
+          type: string
+          example: "Test paid event"
+        priceLow:
+          type: integer
+          example: 100
+        priceHigh:
+          type: integer
+          example: 500
+        ageLimitLow:
+          type: integer
+          example: 12
+        ageLimitHigh:
+          type: integer
+          example: 18
+        location:
+          type: string
+          example: "56.822523, 60.605641 улица Декабристов, 77Б, Екатеринбург, Свердловская область, 620063"
+        ownerInfo:
+          type: string
+          example: "ООО Тестовые Решения"
+        hasCertificate:
+          type: boolean
+        favCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date
+        modifiedAt:
+          type: string
+          format: date
+        schedule:
+          $ref: '#/components/schemas/EventScheduleResponse'
+        tags:
+          type: array
+          items:
+            type: string
+            example: [ "test", "хакатон", "командное", "соревнование" ]
+
+    EventScheduleResponse:
+      type: object
+      properties:
+        scheduleUUID:
+          type: string
+        beginsAt:
+          type: string
+          format: date
+        endsAt:
+          type: string
+          format: date
+        addedAt:
+          type: string
+          format: date
+
     Ok:
       type: object
       properties:
@@ -210,27 +307,30 @@ components:
           format: string
           example: 'Petrov'
 
-  requestBodies:
-
-    SendCodeRequest:
-      description: Phone number object
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/SendCodeRequest'
-
-    FinishRegistrationRequest:
-      description: Basic user information
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/FinishRegistrationRequest'
-
-    ConfirmOTPRequest:
-      description: Confirm OTP request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ConfirmOTPRequest'
-
-
+    EventsRequest:
+      type: object
+      required:
+        - from
+        - to
+      properties:
+        from:
+          type: string
+          format: date
+          example: '2024-06-06T12:00:00+05:00'
+        to:
+          type: string
+          format: date
+          example: '2024-06-06T18:00:00+05:00'
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["test", "хакатон"]
+        excludeAgeRestricted:
+          type: boolean
+          format: boolean
+          example: false
+        excludePaid:
+          type: boolean
+          format: boolean
+          example: false
