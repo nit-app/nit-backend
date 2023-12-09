@@ -22,7 +22,7 @@ func HandleErrors(c *gin.Context) {
 	}
 
 	var serviceError *wrappedErrors.Error
-	ok := errors.As(c.Errors[0], &serviceError)
+	ok := errors.As(c.Errors.Last(), &serviceError)
 	if !ok {
 		zap.L().Warn("unsolicited non-wrapped error", zap.Error(c.Errors[0]))
 		return

@@ -17,7 +17,7 @@ func sendOtp(c *gin.Context, delegate OtpDelegate) {
 	req := GetRequestData[requests.PhoneNumberRequest](c)
 
 	if err := delegate.Start(sessions.Current(c), req.PhoneNumber); err != nil {
-		c.JSON(response.ErrorWithText(status.OtpDeliveryError, err.Error()))
+		_ = c.Error(err)
 		return
 	}
 
@@ -28,7 +28,7 @@ func checkOtp(c *gin.Context, delegate OtpDelegate) {
 	req := GetRequestData[requests.OtpCheckRequest](c)
 
 	if err := delegate.CheckOTP(sessions.Current(c), req.Code); err != nil {
-		c.JSON(response.ErrorWithText(status.OtpCheckingError, err.Error()))
+		_ = c.Error(err)
 		return
 	}
 
