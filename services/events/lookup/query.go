@@ -10,6 +10,11 @@ import (
 	"github.com/nit-app/nit-backend/services/events"
 )
 
+const (
+	maxAgeLimit   = 100
+	maxPriceLimit = 10_000_000
+)
+
 func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*responses.EventHeader, error) {
 	const query = `
 		select
@@ -37,8 +42,9 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 			and es.beginsat >= $3
 			and es.endsat <= $4
 		where 
-					e.deletedat is null
+			e.deletedat is null
 			and e.agelimitlow <= $1
+			and e.agelimithigh <= $1
 			and e.pricelow <= $2
 		group by
 			e.uuid,
@@ -50,17 +56,17 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 		order by
 			e.favcount`
 
-	ageLimitLowFilter := 100
+	ageLimitFilter := maxAgeLimit
 	if filters.ExcludeAgeRestricted {
-		ageLimitLowFilter = 0
+		ageLimitFilter = 0
 	}
 
-	priceFilter := 10000000
+	priceFilter := maxPriceLimit
 	if filters.ExcludePaid {
 		priceFilter = 0
 	}
 
-	rows, err := env.DB().QueryContext(ctx, query, ageLimitLowFilter, priceFilter, filters.From, filters.To)
+	rows, err := env.DB().QueryContext(ctx, query, ageLimitFilter, priceFilter, filters.From, filters.To)
 	if err != nil {
 		return nil, errors.New(status.InternalServerError, err)
 	}
