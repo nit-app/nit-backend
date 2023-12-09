@@ -151,7 +151,7 @@ paths:
       tags:
         - events
       summary: Search for events by filters
-      operationId: events
+      operationId: eventsLookup
       requestBody:
         content:
           application/json:
@@ -200,10 +200,10 @@ components:
           example: 500
         ageLimitLow:
           type: integer
-          example: 14
+          example: 12
         ageLimitHigh:
           type: integer
-          example: 100
+          example: 18
         location:
           type: string
           example: "56.822523, 60.605641 улица Декабристов, 77Б, Екатеринбург, Свердловская область, 620063"
@@ -290,7 +290,7 @@ components:
         code:
           type: string
           format: number
-          example: '43251'
+          example: '5731'
 
     FinishRegistrationRequest:
       type: object
