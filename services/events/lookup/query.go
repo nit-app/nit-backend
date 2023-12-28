@@ -32,7 +32,8 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 			es.beginsat,
 			es.endsat,
 			es.addedat,
-			es.scheduleuuid
+			es.scheduleuuid,
+			e.plainDescription
 		from
 			events e
 		join event_tags et on
@@ -75,7 +76,7 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 
 	eventHeaders := make([]*responses.EventHeader, 0)
 	for rows.Next() {
-		eventObject, err := events.ScanEventHeader(rows)
+		eventObject, err := events.ScanEventHeader(rows, nil)
 		if err != nil {
 			return nil, errors.New(status.InternalServerError, err)
 		}

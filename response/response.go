@@ -29,5 +29,5 @@ func getStatus(code string) int {
 	if !ok {
 		return defaultStatus
 	}
-	return val
+	return val.HTTP
 }

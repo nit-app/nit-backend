@@ -24,7 +24,7 @@ func (e *Error) Type() string {
 
 func (e *Error) MakeResponse() (statusCode, reason string) {
 	// internal server error is the special case of error handling where we don't report reason to user
-	if e.typ == status.InternalServerError || e.err == nil {
+	if !status.Codes[e.typ].ExposeText || e.err == nil {
 		return e.typ, ""
 	}
 
