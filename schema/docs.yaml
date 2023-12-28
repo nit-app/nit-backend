@@ -165,8 +165,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsResponse'
 
+  /events/getEvent:
+    post:
+      tags:
+        - events
+      summary: Get event by ID
+      operationId: event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
 components:
   schemas:
+
+    EventResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        object:
+          type: object
+          properties:
+            header:
+              $ref: '#/components/schemas/EventHeaderResponse'
+            links:
+              type: array
+              items:
+                $ref: '#/components/schemas/EventLinkResponse'
+            description:
+              type: string
+              example: 'Description of a test event11'
+
 
     EventsResponse:
       type: object
@@ -221,12 +260,32 @@ components:
           type: string
           format: date
         schedule:
-          $ref: '#/components/schemas/EventScheduleResponse'
+          type: array
+          items:
+            $ref: '#/components/schemas/EventScheduleResponse'
         tags:
           type: array
           items:
             type: string
             example: [ "test", "хакатон", "командное", "соревнование" ]
+        plainDescription:
+          type: string
+          example: "a paid event, come and have fun if you can afford it"
+
+    EventLinkResponse:
+      type: object
+      properties:
+        linkUUID:
+          type: string
+        title:
+          type: string
+          example: 'VK'
+        url:
+          type: string
+          example: 'https://vk.com/durov'
+        addedAt:
+          type: string
+          format: date
 
     EventScheduleResponse:
       type: object
@@ -306,6 +365,15 @@ components:
           type: string
           format: string
           example: 'Petrov'
+
+    EventRequest:
+      type: object
+      required:
+        - uuid
+      properties:
+        uuid:
+          type: string
+          example: 'b141fa84-8e25-11ee-8542-fa163e445fa2'
 
     EventsRequest:
       type: object

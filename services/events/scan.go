@@ -18,7 +18,7 @@ func ScanEventHeader(row Scanner) (*responses.EventHeader, error) {
 	err := row.Scan(&header.UUID, &header.Title, &header.PriceLow, &header.PriceHigh, &header.AgeLimitLow,
 		&header.AgeLimitHigh, &header.Location, &header.OwnerInfo, &tags, &header.CreatedAt,
 		&header.ModifiedAt, &matchedDay.BeginsAt, &matchedDay.EndsAt, &matchedDay.AddedAt,
-		&matchedDay.ScheduleUUID)
+		&matchedDay.ScheduleUUID, &header.PlainDescription)
 	if err != nil {
 		return nil, err
 	}
@@ -26,4 +26,29 @@ func ScanEventHeader(row Scanner) (*responses.EventHeader, error) {
 	header.Tags = strings.Split(tags, ",")
 	header.Schedule = append(header.Schedule, matchedDay)
 	return header, nil
+}
+
+func ScanSchedule(row Scanner) (responses.EventSchedule, error) {
+	schedule := responses.EventSchedule{}
+
+	err := row.Scan(&schedule.BeginsAt, &schedule.EndsAt, &schedule.AddedAt, &schedule.ScheduleUUID)
+
+	return schedule, err
+}
+
+func ScanLink(row Scanner) (responses.EventExternalLink, error) {
+	link := responses.EventExternalLink{}
+
+	err := row.Scan(&link.LinkUUID, &link.Title, &link.URL, &link.AddedAt)
+
+	return link, err
+}
+
+func ScanDescription(row Scanner) (string, error) {
+	var description string
+
+	err := row.Scan(&description)
+
+	return description, err
+
 }
