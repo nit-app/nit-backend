@@ -70,7 +70,7 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 
 	eventHeaders := make([]*responses.EventHeader, 0)
 	for rows.Next() {
-		eventObject, err := events.ScanEventHeader(rows)
+		eventObject, err := events.ScanEventHeader(rows, nil)
 		if err != nil {
 			return nil, errors.New(status.InternalServerError, err)
 		}

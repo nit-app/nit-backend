@@ -70,7 +70,7 @@ func main() {
 
 	v1.GET("/getMe", userController.GetMe)
 	v1.POST("/events/lookup", controllers.ValidateRequestData[requests.EventLookupFilters], controllers.LookupEvents)
-	v1.POST("/events/getEvent", controllers.ValidateRequestData[requests.EventIdRequest], controllers.GetEvent)
+	v1.GET("/events/get/:uuid", controllers.GetEvent)
 
 	server := &http.Server{
 		Addr:    env.E().ListenAddress,

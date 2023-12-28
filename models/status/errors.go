@@ -10,7 +10,17 @@ const (
 	OtpDeliveryError    = "OTP_DELIVERY_ERROR"
 	OtpCheckingError    = "OTP_CHECKING_ERROR"
 	InternalServerError = "INTERNAL_SERVER_ERROR"
+	NoSuchEvent         = "NO_SUCH_EVENT"
 )
 
-var Codes = map[string]int{Unauthorized: http.StatusUnauthorized, OtpCheckingError: http.StatusUnauthorized,
-	InternalServerError: http.StatusInternalServerError}
+var Codes = map[string]Code{
+	Unauthorized:        {http.StatusUnauthorized, true},
+	OtpCheckingError:    {http.StatusUnauthorized, true},
+	InternalServerError: {http.StatusInternalServerError, false},
+	NoSuchEvent:         {http.StatusNotFound, false},
+}
+
+type Code struct {
+	HTTP       int
+	ExposeText bool
+}

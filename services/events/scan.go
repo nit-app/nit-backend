@@ -5,20 +5,27 @@ import (
 	"strings"
 )
 
-func ScanEventHeader(row Scanner) (*responses.EventHeader, error) {
+func ScanEventHeader(row Scanner, description *string) (*responses.EventHeader, error) {
 	header := &responses.EventHeader{}
 
 	var (
 		tags string
 
 		// event header stores only one of the scheduled days, specifically the one that has matched user's query
-		matchedDay = responses.EventSchedule{}
+		matchedDay = &responses.EventSchedule{}
 	)
 
-	err := row.Scan(&header.UUID, &header.Title, &header.PriceLow, &header.PriceHigh, &header.AgeLimitLow,
+	targets := []any{&header.UUID, &header.Title, &header.PriceLow, &header.PriceHigh, &header.AgeLimitLow,
 		&header.AgeLimitHigh, &header.Location, &header.OwnerInfo, &tags, &header.CreatedAt,
 		&header.ModifiedAt, &matchedDay.BeginsAt, &matchedDay.EndsAt, &matchedDay.AddedAt,
-		&matchedDay.ScheduleUUID, &header.PlainDescription)
+		&matchedDay.ScheduleUUID, &header.PlainDescription}
+
+	if description != nil {
+		targets = append(targets, description)
+	}
+
+	err := row.Scan(targets...)
+
 	if err != nil {
 		return nil, err
 	}
@@ -28,27 +35,18 @@ func ScanEventHeader(row Scanner) (*responses.EventHeader, error) {
 	return header, nil
 }
 
-func ScanSchedule(row Scanner) (responses.EventSchedule, error) {
-	schedule := responses.EventSchedule{}
+func ScanSchedule(row Scanner) (*responses.EventSchedule, error) {
+	schedule := &responses.EventSchedule{}
 
 	err := row.Scan(&schedule.BeginsAt, &schedule.EndsAt, &schedule.AddedAt, &schedule.ScheduleUUID)
 
 	return schedule, err
 }
 
-func ScanLink(row Scanner) (responses.EventExternalLink, error) {
-	link := responses.EventExternalLink{}
+func ScanLink(row Scanner) (*responses.EventExternalLink, error) {
+	link := &responses.EventExternalLink{}
 
 	err := row.Scan(&link.LinkUUID, &link.Title, &link.URL, &link.AddedAt)
 
 	return link, err
-}
-
-func ScanDescription(row Scanner) (string, error) {
-	var description string
-
-	err := row.Scan(&description)
-
-	return description, err
-
 }
