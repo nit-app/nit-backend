@@ -33,7 +33,8 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 			es.endsat,
 			es.addedat,
 			es.scheduleuuid,
-			e.plainDescription
+			e.plainDescription,
+			e.favcount
 		from
 			events e
 		join event_tags et on

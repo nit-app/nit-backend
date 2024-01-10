@@ -30,6 +30,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*responses.Event, error) {
 			es.addedat,
 			es.scheduleuuid,
 			e.plainDescription,
+			e.favcount,
 			e.description
 		from
 			events e

@@ -18,7 +18,7 @@ func ScanEventHeader(row Scanner, description *string) (*responses.EventHeader, 
 	targets := []any{&header.UUID, &header.Title, &header.PriceLow, &header.PriceHigh, &header.AgeLimitLow,
 		&header.AgeLimitHigh, &header.Location, &header.OwnerInfo, &tags, &header.CreatedAt,
 		&header.ModifiedAt, &matchedDay.BeginsAt, &matchedDay.EndsAt, &matchedDay.AddedAt,
-		&matchedDay.ScheduleUUID, &header.PlainDescription}
+		&matchedDay.ScheduleUUID, &header.PlainDescription, &header.FavCount}
 
 	if description != nil {
 		targets = append(targets, description)
