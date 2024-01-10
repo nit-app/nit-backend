@@ -65,12 +65,14 @@ func main() {
 	registerGroup.POST("/confirm", controllers.ValidateRequestData[requests.OtpCheckRequest], registerController.CheckOTP)
 	registerGroup.POST("/finish", controllers.ValidateRequestData[requests.FinishRegistrationRequest], registerController.Finish)
 
+	eventsGroup := engine.Group("/v1/events")
+	eventsGroup.POST("/lookup", controllers.ValidateRequestData[requests.EventLookupFilters], controllers.LookupEvents)
+	eventsGroup.GET("/get/:uuid", controllers.GetEvent)
+
 	v1 := engine.Group("/v1")
 	v1.Use(sessions.RequireAuth)
 
 	v1.GET("/getMe", userController.GetMe)
-	v1.POST("/events/lookup", controllers.ValidateRequestData[requests.EventLookupFilters], controllers.LookupEvents)
-	v1.GET("/events/get/:uuid", controllers.GetEvent)
 
 	server := &http.Server{
 		Addr:    env.E().ListenAddress,
