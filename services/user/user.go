@@ -7,14 +7,11 @@ import (
 	"time"
 )
 
-type Service struct {
-}
-
 var (
 	errPhoneNumberOccupied = errors.New("this phone number already has an account associated with it")
 )
 
-func (us *Service) GetUuidByPhoneNumber(phoneNumber string) (string, error) {
+func GetUuidByPhoneNumber(phoneNumber string) (string, error) {
 	row := env.DB().QueryRow("select uuid from users where phoneNumber = $1", phoneNumber)
 
 	var userUuid string
@@ -23,8 +20,8 @@ func (us *Service) GetUuidByPhoneNumber(phoneNumber string) (string, error) {
 	return userUuid, err
 }
 
-func (us *Service) RegisterByPhoneNumber(phoneNumber string, firstName string, lastName *string) (string, error) {
-	existing, _ := us.GetUuidByPhoneNumber(phoneNumber)
+func RegisterByPhoneNumber(phoneNumber string, firstName string, lastName *string) (string, error) {
+	existing, _ := GetUuidByPhoneNumber(phoneNumber)
 	if len(existing) != 0 {
 		return "", errPhoneNumberOccupied
 	}
@@ -36,8 +33,4 @@ func (us *Service) RegisterByPhoneNumber(phoneNumber string, firstName string, l
 	}
 
 	return userUuid.String(), err
-}
-
-func New() *Service {
-	return &Service{}
 }
