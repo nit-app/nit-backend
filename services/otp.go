@@ -33,7 +33,7 @@ func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextSt
 	return os.Carrier.Send(phoneNumber, otpCode)
 }
 
-func (os *OtpService) CheckOTP(session *sessions.Session, otpCode string, expectedState string, nextState string) error {
+func (os *OtpService) CheckOTP(session *sessions.Session, otpCode string, expectedState string) error {
 	if session.State != expectedState || session.OTP == nil {
 		return errBadOtpState
 	}
@@ -51,8 +51,6 @@ func (os *OtpService) CheckOTP(session *sessions.Session, otpCode string, expect
 		session.OTP.Attempt++
 		return errBadOtpCode
 	}
-
-	session.State = nextState
 
 	return nil
 }
