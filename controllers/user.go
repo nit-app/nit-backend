@@ -6,9 +6,6 @@ import (
 	"github.com/nit-app/nit-backend/sessions"
 )
 
-type UserController struct {
-}
-
-func (uc *UserController) GetMe(c *gin.Context) {
+func GetMe(c *gin.Context) {
 	c.JSON(response.Ok(sessions.Subject(c)))
 }

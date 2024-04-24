@@ -52,7 +52,6 @@ func main() {
 	registerService := &services.RegisterService{OTP: otpService, UserService: userService}
 
 	authController := &controllers.AuthController{AuthService: authService}
-	userController := &controllers.UserController{}
 	registerController := &controllers.RegisterController{RegisterService: registerService}
 
 	authGroup := engine.Group("/v1/auth")
@@ -72,7 +71,7 @@ func main() {
 	v1 := engine.Group("/v1")
 	v1.Use(sessions.RequireAuth)
 
-	v1.GET("/getMe", userController.GetMe)
+	v1.GET("/getMe", controllers.GetMe)
 
 	server := &http.Server{
 		Addr:    env.E().ListenAddress,
