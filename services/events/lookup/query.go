@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/nit-app/nit-backend/env"
 	"github.com/nit-app/nit-backend/errors"
+	"github.com/nit-app/nit-backend/models"
 	"github.com/nit-app/nit-backend/models/requests"
-	"github.com/nit-app/nit-backend/models/responses"
 	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/services/events"
 )
@@ -15,7 +15,7 @@ const (
 	maxPriceLimit = 10_000_000
 )
 
-func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*responses.EventHeader, error) {
+func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*models.EventHeader, error) {
 	const query = `
 		select
 			e.uuid,
@@ -34,7 +34,9 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 			es.addedat,
 			es.scheduleuuid,
 			e.plainDescription,
-			e.favcount
+			e.favcount,
+			e.isDraft,
+			e.isMachineGenerated
 		from
 			events e
 		join event_tags et on
@@ -48,6 +50,7 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 			and e.agelimitlow <= $1
 			and e.agelimithigh <= $1
 			and e.pricelow <= $2
+			and not e.isDraft
 		group by
 			e.uuid,
 			e.favcount,
@@ -75,7 +78,7 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*respo
 
 	defer rows.Close()
 
-	eventHeaders := make([]*responses.EventHeader, 0)
+	eventHeaders := make([]*models.EventHeader, 0)
 	for rows.Next() {
 		eventObject, err := events.ScanEventHeader(rows, nil)
 		if err != nil {
