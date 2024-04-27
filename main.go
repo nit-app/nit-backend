@@ -36,7 +36,7 @@ func main() {
 	engine.Use(controllers.HandleErrors)
 	engine.Use(controllers.CORS)
 
-	Register(engine)
+	controllers.Register(engine)
 
 	server := &http.Server{
 		Addr:    env.E().ListenAddress,
