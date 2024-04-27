@@ -11,8 +11,8 @@ import (
 )
 
 func GetByUuid(ctx context.Context, u string) (*models.User, error) {
-	row := env.DB().QueryRowContext(ctx, `select "uuid", phoneNumber, firstName, lastName,
-       registeredAt, isAdmin from users where "uuid" = ?`, u)
+	row := env.DB().QueryRowContext(ctx, `select "uuid", phoneNumber, firstName, lastName, registeredAt, isAdmin
+		from users where "uuid" = $1`, u)
 
 	return scanUser(row)
 }
@@ -23,7 +23,7 @@ func scanUser(row env.Scanner) (*models.User, error) {
 	err := row.Scan(&u.UUID, &u.PhoneNumber, &u.FirstName, &u.LastName, &u.RegisteredAt, &u.IsAdmin)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, wrappedErrors.New(status.NoSuchEvent, err)
+			return nil, wrappedErrors.New(status.NoSuchUser, err)
 		}
 
 		return nil, wrappedErrors.New(status.InternalServerError, err)

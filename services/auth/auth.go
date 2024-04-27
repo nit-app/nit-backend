@@ -5,15 +5,13 @@ import (
 	"errors"
 	wrappedErrors "github.com/nit-app/nit-backend/errors"
 	"github.com/nit-app/nit-backend/models/status"
-	"github.com/nit-app/nit-backend/services/otp"
-	"github.com/nit-app/nit-backend/services/sms"
 	"github.com/nit-app/nit-backend/services/user"
 	"github.com/nit-app/nit-backend/sessions"
 )
 
 var errNoUserFoundByNumber = errors.New("no user is created with this phone number")
 
-var otpService = &OtpService{Generator: otp.NewGenerator(), Carrier: sms.NewCarrier()}
+var otpService = &OtpService{}
 
 const maxOtpAttempts = 5
 

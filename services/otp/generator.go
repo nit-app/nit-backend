@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/nit-app/nit-backend/env"
+	"sync"
 )
 
 type Generator interface {
@@ -27,10 +28,20 @@ func (mg *mockGenerator) Generate() string {
 	return env.E().OtpMockAcceptCode
 }
 
-func NewGenerator() Generator {
+var (
+	createOnce sync.Once
+	gen        Generator
+)
+
+func createGenerator() {
 	if len(env.E().OtpMockAcceptCode) != 0 {
-		return &mockGenerator{}
+		gen = &mockGenerator{}
 	}
 
-	return &secureRandomGenerator{}
+	gen = &secureRandomGenerator{}
+}
+
+func Generate() string {
+	createOnce.Do(createGenerator)
+	return gen.Generate()
 }

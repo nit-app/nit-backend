@@ -10,8 +10,6 @@ import (
 )
 
 type OtpService struct {
-	Generator otp.Generator
-	Carrier   sms.Carrier
 }
 
 var (
@@ -21,7 +19,7 @@ var (
 )
 
 func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextState string) error {
-	otpCode := os.Generator.Generate()
+	otpCode := otp.Generate()
 	session.OTP = &sessions.OtpState{
 		Code:        otpCode,
 		Attempt:     0,
@@ -30,7 +28,7 @@ func (os *OtpService) Send(session *sessions.Session, phoneNumber string, nextSt
 	session.State = nextState
 	session.Save()
 
-	return os.Carrier.Send(phoneNumber, otpCode)
+	return sms.Send(phoneNumber, otpCode)
 }
 
 func (os *OtpService) CheckOTP(session *sessions.Session, otpCode string, expectedState string) error {
