@@ -1,12 +1,12 @@
-package responses
+package models
 
 import "time"
 
 type EventHeader struct {
 	UUID               string           `json:"uuid"`
-	Title              string           `json:"title"`
-	PriceLow           int              `json:"priceLow"`
-	PriceHigh          int              `json:"priceHigh"`
+	Title              string           `json:"title" binding:"required"`
+	PriceLow           int              `json:"priceLow" binding:"required"`
+	PriceHigh          int              `json:"priceHigh" binding:"required"` // TODO: add validations for remaining fields
 	AgeLimitLow        int              `json:"ageLimitLow"`
 	AgeLimitHigh       int              `json:"ageLimitHigh"`
 	Location           string           `json:"location"`
@@ -19,7 +19,7 @@ type EventHeader struct {
 	Tags               []string         `json:"tags"`
 	PlainDescription   string           `json:"plainDescription"`
 	IsDraft            bool             `json:"isDraft"`
-	IsMachineGenerated bool             `json:"-"`
+	IsMachineGenerated bool             `json:"isMachineGenerated"`
 }
 
 type Event struct {
