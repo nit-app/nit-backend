@@ -36,9 +36,9 @@ var (
 func createGenerator() {
 	if len(env.E().OtpMockAcceptCode) != 0 {
 		gen = &mockGenerator{}
+	} else {
+		gen = &secureRandomGenerator{}
 	}
-
-	gen = &secureRandomGenerator{}
 }
 
 func Generate() string {
