@@ -1,9 +1,8 @@
 package sessions
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/nit-app/nit-backend/models/status"
-	"github.com/nit-app/nit-backend/response"
 )
 
 const (
@@ -28,16 +27,6 @@ func SessionKeeper(c *gin.Context) {
 	c.Set(SessionKey, s)
 }
 
-func RequireAuth(c *gin.Context) {
-	sessionRaw, ok := c.Get(SessionKey)
-	if !ok || sessionRaw.(*Session).State != StateAuthorized {
-		c.AbortWithStatusJSON(response.Error(status.Unauthorized))
-		return
-	}
-
-	c.Next()
-}
-
 func resetSession(c *gin.Context) string {
 	token, err := createSession()
 	if err != nil {
@@ -54,7 +43,7 @@ func getSessionOrReset(c *gin.Context, token string) *Session {
 		return s
 	}
 
-	if err == ErrNoSuchSession {
+	if errors.Is(err, ErrNoSuchSession) {
 		token = resetSession(c)
 
 		s, err := getSession(token)
