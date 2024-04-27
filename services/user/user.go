@@ -20,7 +20,7 @@ func GetUuidByPhoneNumber(phoneNumber string) (string, error) {
 	return userUuid, err
 }
 
-func RegisterByPhoneNumber(phoneNumber string, firstName string, lastName *string) (string, error) {
+func RegisterByPhoneNumber(phoneNumber string, firstName string, lastName string) (string, error) {
 	existing, _ := GetUuidByPhoneNumber(phoneNumber)
 	if len(existing) != 0 {
 		return "", errPhoneNumberOccupied

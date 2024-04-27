@@ -26,7 +26,12 @@ func (r *RegisterBundle) CheckOTP(session *sessions.Session, otpCode string) err
 }
 
 func (r *RegisterBundle) Finish(session *sessions.Session, firstName string, lastName *string) (string, error) {
-	newUserUuid, err := user.RegisterByPhoneNumber(session.OTP.PhoneNumber, firstName, lastName)
+	if lastName == nil {
+		empty := ""
+		lastName = &empty
+	}
+
+	newUserUuid, err := user.RegisterByPhoneNumber(session.OTP.PhoneNumber, firstName, *lastName)
 	if err != nil {
 		return "", err
 	}
