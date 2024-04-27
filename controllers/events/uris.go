@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nit-app/nit-backend/controllers/access"
 	"github.com/nit-app/nit-backend/controllers/util"
+	"github.com/nit-app/nit-backend/models"
 	"github.com/nit-app/nit-backend/models/requests"
 )
 
@@ -13,9 +14,9 @@ func Register(engine *gin.Engine) {
 	eventsGroup.GET("/get/:uuid", GetEvent)
 
 	eventAdminGroup := engine.Group("/v1/eventAdmin")
-	eventAdminGroup.Use(access.RequireAdmin)
+	eventAdminGroup.Use(access.RequireAuth, access.RequireAdmin)
 
 	eventAdminGroup.GET("/drafts", GetDrafts)
-	eventAdminGroup.POST("/create", CreateDraft)
-	eventAdminGroup.POST("/appendTag", AppendTag)
+	eventAdminGroup.POST("/create", util.ValidateRequestData[*models.EventHeader], CreateDraft)
+	eventAdminGroup.POST("/appendTag", util.ValidateRequestData[*requests.AppendTag], AppendTag)
 }
