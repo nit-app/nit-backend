@@ -6,6 +6,7 @@ import (
 	"github.com/nit-app/nit-backend/controllers/auth"
 	"github.com/nit-app/nit-backend/controllers/events"
 	"github.com/nit-app/nit-backend/controllers/register"
+	"github.com/nit-app/nit-backend/sessions"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -13,6 +14,8 @@ import (
 func Register(engine *gin.Engine) {
 	engine.StaticFile("/docs.yaml", "schema/docs.yaml")
 	engine.GET("/swagger-ui/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("../docs.yaml")))
+
+	engine.Use(sessions.SessionKeeper, access.CheckAuth)
 
 	auth.Register(engine)
 	register.Register(engine)

@@ -9,12 +9,20 @@ import (
 )
 
 func RequireAuth(c *gin.Context) {
+	_, ok := c.Get(util.CtxKeyUser)
+	if !ok {
+		c.AbortWithStatusJSON(response.Error(status.Unauthorized))
+		return
+	}
+	c.Next()
+}
+
+func CheckAuth(c *gin.Context) {
+	defer c.Next()
 	sessionRaw, ok := c.Get(sessions.SessionKey)
 	if !ok || sessionRaw.(*sessions.Session).State != sessions.StateAuthorized || sessionRaw.(*sessions.Session).Subject == nil {
-		c.AbortWithStatusJSON(response.Error(status.Unauthorized))
 		return
 	}
 
 	c.Set(util.CtxKeyUser, *sessionRaw.(*sessions.Session).Subject)
-	c.Next()
 }
