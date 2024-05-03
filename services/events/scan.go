@@ -19,7 +19,7 @@ func ScanEventHeader(row env.Scanner, description *string) (*models.EventHeader,
 	targets := []any{&header.UUID, &header.Title, &header.PriceLow, &header.PriceHigh, &header.AgeLimitLow,
 		&header.AgeLimitHigh, &header.Location, &header.OwnerInfo, &tags, &header.CreatedAt,
 		&header.ModifiedAt, &matchedDay.BeginsAt, &matchedDay.EndsAt, &matchedDay.AddedAt,
-		&matchedDay.ScheduleUUID, &header.PlainDescription, &header.FavCount, &header.IsDraft, &header.IsMachineGenerated}
+		&matchedDay.ScheduleUUID, &header.HasCertificate, &header.PlainDescription, &header.FavCount, &header.IsDraft, &header.IsMachineGenerated}
 
 	if description != nil {
 		targets = append(targets, description)
@@ -32,7 +32,11 @@ func ScanEventHeader(row env.Scanner, description *string) (*models.EventHeader,
 	}
 
 	header.Tags = strings.Split(tags, ",")
-	header.Schedule = append(header.Schedule, matchedDay)
+
+	header.Schedule = make([]*models.EventSchedule, 0)
+	if matchedDay.ScheduleUUID != nil {
+		header.Schedule = append(header.Schedule, matchedDay)
+	}
 	return header, nil
 }
 

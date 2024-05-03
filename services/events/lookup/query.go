@@ -33,6 +33,7 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*model
 			es.endsat,
 			es.addedat,
 			es.scheduleuuid,
+			e.hascertificate,
 			e.plainDescription,
 			e.favcount,
 			e.isDraft,
