@@ -35,7 +35,7 @@ jobs:
         run: go get .
         
       - name: Build
-        run: go build -o target/nit
+        run: CGO_ENABLED=0 go build --trimpath -o target/nit
         
       - name: Test with the Go CLI
         run: go test
