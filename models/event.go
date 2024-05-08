@@ -16,7 +16,7 @@ type EventHeader struct {
 	CreatedAt          time.Time        `json:"createdAt"`
 	ModifiedAt         time.Time        `json:"modifiedAt"`
 	Schedule           []*EventSchedule `json:"schedule"`
-	Tags               []string         `json:"tags" binding:"required"`
+	Tags               []string         `json:"tags" binding:"required,unique,min=1,max=30,dive,min=3,max=512,excludesall= "`
 	PlainDescription   string           `json:"plainDescription" binding:"required"`
 	IsDraft            bool             `json:"isDraft"`
 	IsMachineGenerated bool             `json:"isMachineGenerated"`

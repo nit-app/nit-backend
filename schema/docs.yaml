@@ -220,17 +220,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventHeaderResponse'
 
-  /eventAdmin/appendTag:
+  /eventAdmin/setTags:
     post:
       tags:
         - eventAdmin
-      summary: Append a tag to an event
-      operationId: appendTag
+      summary: Set new tags for an event
+      operationId: setTags
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppendTagRequest'
+              $ref: '#/components/schemas/SetTagsRequest'
       responses:
         '200':
           description: Successful operation
@@ -541,15 +541,17 @@ components:
           type: boolean
           example: false
 
-    AppendTagRequest:
+    SetTagsRequest:
       type: object
       required:
         - eventUuid
-        - tag
+        - tags
       properties:
         eventUuid:
           type: string
           example: 'f70dd14f-8e24-11ee-8542-fa163e445fa2'
-        tag:
-          type: string
-          example: 'хакатон'
+        tags:
+          type: array
+          items:
+            type: string
+          example: [ "test", "хакатон", "командное", "соревнование" ]

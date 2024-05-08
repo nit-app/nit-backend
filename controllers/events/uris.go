@@ -18,5 +18,5 @@ func Register(engine *gin.Engine) {
 
 	eventAdminGroup.GET("/drafts", GetDrafts)
 	eventAdminGroup.POST("/create", util.ValidateRequestData[*models.EventHeader], CreateDraft)
-	eventAdminGroup.POST("/appendTag", util.ValidateRequestData[*requests.AppendTag], AppendTag)
+	eventAdminGroup.POST("/setTags", util.ValidateRequestData[*requests.SetTags], SetTags)
 }

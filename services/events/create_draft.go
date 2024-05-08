@@ -1,8 +1,11 @@
 package events
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/nit-app/nit-backend/env"
 	wrappedErrors "github.com/nit-app/nit-backend/errors"
 	"github.com/nit-app/nit-backend/models"
@@ -16,22 +19,43 @@ func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeade
 	newUuid := uuid.New()
 	header.UUID = newUuid.String()
 
-	_, err := env.DB().ExecContext(c,
-		"insert into events (uuid, title, description, pricelow, pricehigh, agelimitlow, agelimithigh, location, ownerinfo, hasCertificate, plaindescription, isdraft, ismachinegenerated) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+	tx, err := env.DB().BeginTx(c, &sql.TxOptions{})
+	if err != nil {
+		return nil, wrappedErrors.New(status.InternalServerError, err)
+	}
+
+	_, err = tx.ExecContext(c, "insert into events (uuid, title, description, pricelow, pricehigh, agelimitlow, agelimithigh, location, ownerinfo, hasCertificate, plaindescription, isdraft, ismachinegenerated) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
 		header.UUID, header.Title, " ", header.PriceLow, header.PriceHigh, header.AgeLimitLow, header.AgeLimitHigh, header.Location, header.OwnerInfo, header.HasCertificate, header.PlainDescription, header.IsDraft, header.IsMachineGenerated)
 
 	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, wrappedErrors.New(status.InternalServerError, err)
+		}
+
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			return nil, wrappedErrors.New(status.InvalidDataFormat, err)
+		}
+
+		return nil, wrappedErrors.New(status.InternalServerError, err)
+	}
+
+	setTags := &requests.SetTags{EventUUID: header.UUID, Tags: header.Tags}
+	if err := setTagsTx(tx, c, setTags); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, wrappedErrors.New(status.InternalServerError, err)
+		}
 		return nil, err
 	}
 
-	for _, tag := range header.Tags {
-		appendTag := requests.AppendTag{EventUUID: header.UUID, Tag: tag}
-		err := AppendTag(c, &appendTag)
-		if err != nil {
-			return nil, err
-		}
+	if err := tx.Commit(); err != nil {
+		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
 
+	return checkDraftCreation(c, newUuid)
+}
+
+func checkDraftCreation(c *gin.Context, uuid uuid.UUID) (*models.EventHeader, error) {
 	const draftQuery = `
 		select
 			e.uuid,
@@ -71,7 +95,7 @@ func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeade
 			es.beginsat,
 			es.endsat`
 
-	draftRow := env.DB().QueryRowContext(c, draftQuery, newUuid)
+	draftRow := env.DB().QueryRowContext(c, draftQuery, uuid)
 
 	draftHeader, err := ScanEventHeader(draftRow, nil)
 	if err != nil {

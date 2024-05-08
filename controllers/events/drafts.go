@@ -30,9 +30,9 @@ func CreateDraft(c *gin.Context) {
 	c.JSON(response.Ok(header))
 }
 
-func AppendTag(c *gin.Context) {
-	req := util.GetRequestData[*requests.AppendTag](c)
-	err := events.AppendTag(c, req)
+func SetTags(c *gin.Context) {
+	req := util.GetRequestData[*requests.SetTags](c)
+	err := events.SetTags(c, req)
 	if err != nil {
 		_ = c.Error(err)
 		return
