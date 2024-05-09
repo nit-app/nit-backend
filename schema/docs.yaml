@@ -15,6 +15,8 @@ tags:
     description: Operations about user
   - name: events
     description: Lookup events
+  - name: eventAdmin
+    description: Manage drafts
 paths:
   /auth/sendCode:
     post:
@@ -139,8 +141,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StringResponse'
-
+                $ref: '#/components/schemas/UserProfileResponse'
         '401':
           description: Unauthorized
         '400':
@@ -178,7 +179,6 @@ paths:
           schema:
             type: string
             format: uuid
-          
       responses:
         '200':
           description: Successful operation
@@ -187,6 +187,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventResponse'
 
+  /eventAdmin/drafts:
+    get:
+      tags:
+        - eventAdmin
+      summary: Get all drafts
+      operationId: drafts
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+
+  /eventAdmin/create:
+    post:
+      tags:
+        - eventAdmin
+      summary: Create a new draft
+      operationId: createDraft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftCreationRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventHeaderResponse'
+
+  /eventAdmin/setTags:
+    post:
+      tags:
+        - eventAdmin
+      summary: Set new tags for an event
+      operationId: setTags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetTagsRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
 components:
   schemas:
 
@@ -274,6 +325,12 @@ components:
         plainDescription:
           type: string
           example: "a paid event, come and have fun if you can afford it"
+        isDraft:
+          type: boolean
+          example: false
+        isMachineGenerated:
+          type: boolean
+          example: false
 
     EventLinkResponse:
       type: object
@@ -333,6 +390,37 @@ components:
           format: int32
           example: 200
 
+    UserProfileResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        object:
+          type: object
+          properties:
+            uuid:
+              type: string
+              format: string
+            phoneNumber:
+              type: string
+              format: string
+            firstName:
+              type: string
+              format: string
+            lastName:
+              type: string
+              format: string
+            registeredAt:
+              type: string
+              format: date-time
+            isAdmin:
+              type: boolean
+              format: boolean
+        status:
+          type: integer
+          format: int32
+          example: 200
 
     SendCodeRequest:
       type: object
@@ -352,13 +440,12 @@ components:
         code:
           type: string
           format: number
-          example: '5731'
+          example: '43251'
 
     FinishRegistrationRequest:
       type: object
       required:
         - firstName
-
       properties:
         firstName:
           type: string
@@ -405,3 +492,66 @@ components:
           type: boolean
           format: boolean
           example: false
+
+    DraftCreationRequest:
+      type: object
+      required:
+        - title
+        - priceLow
+        - priceHigh
+        - ageLimitLow
+        - ageLimitHigh
+        - location
+        - ownerInfo
+        - tags
+        - plainDescription
+      properties:
+        title:
+          type: string
+          example: "First draft!"
+        priceLow:
+          type: integer
+          example: 100
+        priceHigh:
+          type: integer
+          example: 500
+        ageLimitLow:
+          type: integer
+          example: 12
+        ageLimitHigh:
+          type: integer
+          example: 18
+        location:
+          type: string
+          example: "56.822523, 60.605641 улица Декабристов, 77Б, Екатеринбург, Свердловская область, 620063"
+        ownerInfo:
+          type: string
+          example: "ООО Тестовые Решения"
+        hasCertificate:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+          example: [ "test", "хакатон", "командное", "соревнование" ]
+        plainDescription:
+          type: string
+          example: "a paid event, come and have fun if you can afford it"
+        isMachineGenerated:
+          type: boolean
+          example: false
+
+    SetTagsRequest:
+      type: object
+      required:
+        - eventUuid
+        - tags
+      properties:
+        eventUuid:
+          type: string
+          example: 'f70dd14f-8e24-11ee-8542-fa163e445fa2'
+        tags:
+          type: array
+          items:
+            type: string
+          example: [ "test", "хакатон", "командное", "соревнование" ]

@@ -7,11 +7,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/nit-app/nit-backend/env"
 	wrappedErrors "github.com/nit-app/nit-backend/errors"
-	"github.com/nit-app/nit-backend/models/responses"
+	"github.com/nit-app/nit-backend/models"
 	"github.com/nit-app/nit-backend/models/status"
+	"github.com/nit-app/nit-backend/util"
 )
 
-func GetByUUID(ctx context.Context, uuid uuid.UUID) (*responses.Event, error) {
+func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 	const headerQuery = `
 		select
 			e.uuid,
@@ -29,13 +30,17 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*responses.Event, error) {
 			es.endsat,
 			es.addedat,
 			es.scheduleuuid,
+			e.hascertificate,
 			e.plainDescription,
+			e.favcount,
+			e.isDraft,
+			e.isMachineGenerated,
 			e.description
 		from
 			events e
 		join event_tags et on
 			e.uuid = et.uuid
-		inner join event_schedule es on
+		left join event_schedule es on
 			e.uuid = es."eventUuid"
 		where 
 		    e.uuid = $1
@@ -72,7 +77,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*responses.Event, error) {
 
 	headerRow := env.DB().QueryRowContext(ctx, headerQuery, uuid)
 
-	event := &responses.Event{}
+	event := &models.Event{}
 
 	eventHeader, err := ScanEventHeader(headerRow, &event.Description)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -107,10 +112,14 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*responses.Event, error) {
 		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
 
+	if event.IsDraft && !util.IsAdmin(ctx) {
+		return nil, wrappedErrors.New(status.NoSuchEvent, util.ErrNoAccess)
+	}
+
 	return event, nil
 }
 
-func scanObjects[T any](rows *sql.Rows, f func(scanner Scanner) (*T, error)) ([]*T, error) {
+func scanObjects[T any](rows *sql.Rows, f func(scanner env.Scanner) (*T, error)) ([]*T, error) {
 	objects := make([]*T, 0)
 	for rows.Next() {
 		object, err := f(rows)

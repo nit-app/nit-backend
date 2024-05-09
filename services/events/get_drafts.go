@@ -1,21 +1,14 @@
-package lookup
+package events
 
 import (
 	"context"
 	"github.com/nit-app/nit-backend/env"
 	"github.com/nit-app/nit-backend/errors"
 	"github.com/nit-app/nit-backend/models"
-	"github.com/nit-app/nit-backend/models/requests"
 	"github.com/nit-app/nit-backend/models/status"
-	"github.com/nit-app/nit-backend/services/events"
 )
 
-const (
-	maxAgeLimit   = 100
-	maxPriceLimit = 10_000_000
-)
-
-func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*models.EventHeader, error) {
+func GetDrafts(ctx context.Context) ([]*models.EventHeader, error) {
 	const query = `
 		select
 			e.uuid,
@@ -42,37 +35,20 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*model
 			events e
 		join event_tags et on
 			e.uuid = et.uuid
-		inner join event_schedule es on
+		left join event_schedule es on
 			e.uuid = es."eventUuid"
-			and es.beginsat >= $3
-			and es.endsat <= $4
-		where 
-			e.deletedat is null
-			and e.agelimitlow <= $1
-			and e.agelimithigh <= $1
-			and e.pricelow <= $2
-			and not e.isDraft
+		where
+		    e.isDraft
+			and e.deletedat is null
 		group by
 			e.uuid,
 			e.favcount,
 			es.scheduleuuid,
 			es.addedat,
 			es.beginsat,
-			es.endsat
-		order by
-			e.favcount`
+			es.endsat`
 
-	ageLimitFilter := maxAgeLimit
-	if filters.ExcludeAgeRestricted {
-		ageLimitFilter = 0
-	}
-
-	priceFilter := maxPriceLimit
-	if filters.ExcludePaid {
-		priceFilter = 0
-	}
-
-	rows, err := env.DB().QueryContext(ctx, query, ageLimitFilter, priceFilter, filters.From, filters.To)
+	rows, err := env.DB().QueryContext(ctx, query)
 	if err != nil {
 		return nil, errors.New(status.InternalServerError, err)
 	}
@@ -81,13 +57,9 @@ func Events(ctx context.Context, filters *requests.EventLookupFilters) ([]*model
 
 	eventHeaders := make([]*models.EventHeader, 0)
 	for rows.Next() {
-		eventObject, err := events.ScanEventHeader(rows, nil)
+		eventObject, err := ScanEventHeader(rows, nil)
 		if err != nil {
 			return nil, errors.New(status.InternalServerError, err)
-		}
-
-		if !isMatchingTags(eventObject.Tags, filters.Tags) {
-			continue
 		}
 
 		eventHeaders = append(eventHeaders, eventObject)

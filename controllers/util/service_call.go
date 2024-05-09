@@ -1,4 +1,4 @@
-package controllers
+package util
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/nit-app/nit-backend/response"
 )
 
-func serviceCall[ArgType, RetType any](c *gin.Context, sm func(ctx context.Context, arg ArgType) (RetType, error), arg ArgType) {
+func ServiceCall[ArgType, RetType any](c *gin.Context, sm func(ctx context.Context, arg ArgType) (RetType, error), arg ArgType) {
 	resp, err := sm(c, arg)
 	if err != nil {
 		_ = c.Error(err)

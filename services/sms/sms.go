@@ -1,6 +1,9 @@
 package sms
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+	"sync"
+)
 
 const (
 	CarrierMethodMock      = "mock"
@@ -21,6 +24,16 @@ func (m *mockCarrier) Send(phoneNumber string, text string) error {
 	return nil
 }
 
-func NewCarrier() Carrier {
-	return &mockCarrier{}
+var (
+	createOnce sync.Once
+	car        Carrier
+)
+
+func createCarrier() {
+	car = &mockCarrier{}
+}
+
+func Send(phoneNumber string, text string) error {
+	createOnce.Do(createCarrier)
+	return car.Send(phoneNumber, text)
 }
