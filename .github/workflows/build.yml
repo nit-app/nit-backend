@@ -1,0 +1,48 @@
+name: Build nit backend
+
+on:
+  push:
+    branches: [ 'dev', 'master' ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5.0.1
+        with:
+          # Target architecture for Go to use. Examples: x86, x64. Will use system architecture by default.
+          architecture: x64
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: cr.yandex
+          username: json_key
+          password: ${{ secrets.YCR_JSON_KEY }}
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: CGO_ENABLED=0 go build --trimpath -o target/nit
+
+      - name: Test with the Go CLI
+        run: go test
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: cr.yandex/crpo96748kljhtq2lvus/nit-backend/nit:${{ steps.extract_branch.outputs.branch }}
