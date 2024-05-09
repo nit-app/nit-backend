@@ -30,6 +30,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 			es.endsat,
 			es.addedat,
 			es.scheduleuuid,
+			e.hascertificate,
 			e.plainDescription,
 			e.favcount,
 			e.isDraft,
@@ -39,7 +40,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 			events e
 		join event_tags et on
 			e.uuid = et.uuid
-		inner join event_schedule es on
+		left join event_schedule es on
 			e.uuid = es."eventUuid"
 		where 
 		    e.uuid = $1

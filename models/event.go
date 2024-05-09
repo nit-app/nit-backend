@@ -7,17 +7,17 @@ type EventHeader struct {
 	Title              string           `json:"title" binding:"required"`
 	PriceLow           int              `json:"priceLow" binding:"required"`
 	PriceHigh          int              `json:"priceHigh" binding:"required"` // TODO: add validations for remaining fields
-	AgeLimitLow        int              `json:"ageLimitLow"`
-	AgeLimitHigh       int              `json:"ageLimitHigh"`
-	Location           string           `json:"location"`
-	OwnerInfo          string           `json:"ownerInfo"`
+	AgeLimitLow        int              `json:"ageLimitLow" binding:"required"`
+	AgeLimitHigh       int              `json:"ageLimitHigh" binding:"required"`
+	Location           string           `json:"location" binding:"required"`
+	OwnerInfo          string           `json:"ownerInfo" binding:"required"`
 	HasCertificate     bool             `json:"hasCertificate"`
 	FavCount           int              `json:"favCount"`
 	CreatedAt          time.Time        `json:"createdAt"`
 	ModifiedAt         time.Time        `json:"modifiedAt"`
 	Schedule           []*EventSchedule `json:"schedule"`
-	Tags               []string         `json:"tags"`
-	PlainDescription   string           `json:"plainDescription"`
+	Tags               []string         `json:"tags" binding:"required,unique,min=1,max=30,dive,min=3,max=512,excludesall= "`
+	PlainDescription   string           `json:"plainDescription" binding:"required"`
 	IsDraft            bool             `json:"isDraft"`
 	IsMachineGenerated bool             `json:"isMachineGenerated"`
 }
@@ -37,8 +37,8 @@ type EventExternalLink struct {
 }
 
 type EventSchedule struct {
-	ScheduleUUID string    `json:"scheduleUUID"`
-	BeginsAt     time.Time `json:"beginsAt"`
-	EndsAt       time.Time `json:"endsAt"`
-	AddedAt      time.Time `json:"addedAt"`
+	ScheduleUUID *string    `json:"scheduleUUID"`
+	BeginsAt     *time.Time `json:"beginsAt"`
+	EndsAt       *time.Time `json:"endsAt"`
+	AddedAt      *time.Time `json:"addedAt"`
 }

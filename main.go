@@ -7,7 +7,6 @@ import (
 	"github.com/nit-app/nit-backend/controllers"
 	"github.com/nit-app/nit-backend/env"
 	_ "github.com/nit-app/nit-backend/env/autoload"
-	"github.com/nit-app/nit-backend/sessions"
 	_ "github.com/nit-app/nit-backend/validators"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -29,8 +28,6 @@ func main() {
 	engine := gin.Default()
 	engine.Use(ginzap.Ginzap(zap.L(), time.RFC3339, true))
 	engine.Use(ginzap.RecoveryWithZap(zap.L(), true))
-
-	engine.Use(sessions.SessionKeeper)
 
 	setCors(engine)
 	engine.Use(controllers.HandleErrors)
