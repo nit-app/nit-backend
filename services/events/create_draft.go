@@ -52,10 +52,10 @@ func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeade
 		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
 
-	return checkDraftCreation(c, newUuid)
+	return getDraftHeader(c, newUuid.String())
 }
 
-func checkDraftCreation(c *gin.Context, uuid uuid.UUID) (*models.EventHeader, error) {
+func getDraftHeader(c *gin.Context, uuid string) (*models.EventHeader, error) {
 	const draftQuery = `
 		select
 			e.uuid,
@@ -80,7 +80,7 @@ func checkDraftCreation(c *gin.Context, uuid uuid.UUID) (*models.EventHeader, er
 			e.isMachineGenerated
 		from
 			events e
-		join event_tags et on
+		left join event_tags et on
 			e.uuid = et.uuid
 		left join event_schedule es on
 			e.uuid = es."eventUuid"

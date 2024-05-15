@@ -33,7 +33,7 @@ func GetDrafts(ctx context.Context) ([]*models.EventHeader, error) {
 			e.isMachineGenerated
 		from
 			events e
-		join event_tags et on
+		left join event_tags et on
 			e.uuid = et.uuid
 		left join event_schedule es on
 			e.uuid = es."eventUuid"
@@ -45,8 +45,10 @@ func GetDrafts(ctx context.Context) ([]*models.EventHeader, error) {
 			e.favcount,
 			es.scheduleuuid,
 			es.addedat,
+			e.modifiedat,
 			es.beginsat,
-			es.endsat`
+			es.endsat
+		order by e.modifiedat desc`
 
 	rows, err := env.DB().QueryContext(ctx, query)
 	if err != nil {

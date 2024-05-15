@@ -10,7 +10,7 @@ func ScanEventHeader(row env.Scanner, description *string) (*models.EventHeader,
 	header := &models.EventHeader{}
 
 	var (
-		tags string
+		tags *string
 
 		// event header stores only one of the scheduled days, specifically the one that has matched user's query
 		matchedDay = &models.EventSchedule{}
@@ -31,12 +31,17 @@ func ScanEventHeader(row env.Scanner, description *string) (*models.EventHeader,
 		return nil, err
 	}
 
-	header.Tags = strings.Split(tags, ",")
+	if tags == nil {
+		header.Tags = make([]string, 0)
+	} else {
+		header.Tags = strings.Split(*tags, ",")
+	}
 
 	header.Schedule = make([]*models.EventSchedule, 0)
 	if matchedDay.ScheduleUUID != nil {
 		header.Schedule = append(header.Schedule, matchedDay)
 	}
+
 	return header, nil
 }
 
