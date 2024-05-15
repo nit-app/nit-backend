@@ -5,10 +5,10 @@ import "time"
 type EventHeader struct {
 	UUID               string           `json:"uuid"`
 	Title              string           `json:"title" binding:"required"`
-	PriceLow           int              `json:"priceLow" binding:"required"`
-	PriceHigh          int              `json:"priceHigh" binding:"required"` // TODO: add validations for remaining fields
-	AgeLimitLow        int              `json:"ageLimitLow" binding:"required"`
-	AgeLimitHigh       int              `json:"ageLimitHigh" binding:"required"`
+	PriceLow           int              `json:"priceLow" binding:"min=0,max=1000000"`
+	PriceHigh          int              `json:"priceHigh" binding:"min=0,max=1000000"`
+	AgeLimitLow        int              `json:"ageLimitLow" binding:"min=0,max=18"`
+	AgeLimitHigh       int              `json:"ageLimitHigh" binding:"min=0,max=99"`
 	Location           string           `json:"location" binding:"required"`
 	OwnerInfo          string           `json:"ownerInfo" binding:"required"`
 	HasCertificate     bool             `json:"hasCertificate"`
@@ -16,7 +16,7 @@ type EventHeader struct {
 	CreatedAt          time.Time        `json:"createdAt"`
 	ModifiedAt         time.Time        `json:"modifiedAt"`
 	Schedule           []*EventSchedule `json:"schedule"`
-	Tags               []string         `json:"tags" binding:"required,unique,min=1,max=30,dive,min=3,max=512,excludesall= "`
+	Tags               []string         `json:"tags" binding:"unique,min=0,max=30,dive,min=1,max=512,excludesall= "`
 	PlainDescription   string           `json:"plainDescription" binding:"required"`
 	IsDraft            bool             `json:"isDraft"`
 	IsMachineGenerated bool             `json:"isMachineGenerated"`
