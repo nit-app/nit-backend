@@ -40,3 +40,14 @@ func SetTags(c *gin.Context) {
 
 	c.JSON(response.Ok(true))
 }
+
+func SetLinks(c *gin.Context) {
+	req := util.GetRequestData[*requests.SetLinks](c)
+	err := events.SetLinks(c, req.EventUUID, req.Links)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	c.JSON(response.Ok(true))
+}

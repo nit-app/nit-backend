@@ -13,7 +13,7 @@ import (
 )
 
 func SetTags(c *gin.Context, req *requests.SetTags) error {
-	tx, err := env.DB().BeginTx(c, &sql.TxOptions{})
+	tx, err := env.DB().BeginTx(c, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return wrappedErrors.New(status.InternalServerError, err)
 	}

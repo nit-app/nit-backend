@@ -31,8 +31,8 @@ type Event struct {
 
 type EventExternalLink struct {
 	LinkUUID string    `json:"uuid"`
-	Title    string    `json:"title"`
-	URL      string    `json:"url"`
+	Title    string    `json:"title" binding:"required,min=2,max=64"`
+	URL      string    `json:"url" binding:"required,http_url"`
 	AddedAt  time.Time `json:"addedAt"`
 }
 
