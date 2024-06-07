@@ -26,10 +26,10 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 			string_agg(distinct et.tag, ',') as tags,
 			e.createdat,
 			e.modifiedat,
-			es.beginsat,
-			es.endsat,
-			es.addedat,
-			es.scheduleuuid,
+			coalesce(es.beginsat, '1970-01-01'),
+			coalesce(es.endsat, '1970-01-01'),
+			coalesce(es.addedat, '1970-01-01'),
+			coalesce(es.scheduleuuid, '00000000-0000-0000-0000-000000000000'),
 			e.hascertificate,
 			e.plainDescription,
 			e.favcount,
@@ -38,7 +38,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 			e.description
 		from
 			events e
-		join event_tags et on
+		left join event_tags et on
 			e.uuid = et.uuid
 		left join event_schedule es on
 			e.uuid = es."eventUuid"

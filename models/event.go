@@ -37,8 +37,8 @@ type EventExternalLink struct {
 }
 
 type EventSchedule struct {
-	ScheduleUUID *string    `json:"scheduleUUID"`
-	BeginsAt     *time.Time `json:"beginsAt"`
-	EndsAt       *time.Time `json:"endsAt"`
-	AddedAt      *time.Time `json:"addedAt"`
+	ScheduleUUID string    `json:"scheduleUUID"`
+	BeginsAt     time.Time `json:"beginsAt"`
+	EndsAt       time.Time `json:"endsAt"`
+	AddedAt      time.Time `json:"addedAt"`
 }
