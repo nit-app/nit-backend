@@ -20,4 +20,5 @@ func Register(engine *gin.Engine) {
 	eventAdminGroup.POST("/create", util.ValidateRequestData[*models.EventHeader], CreateDraft)
 	eventAdminGroup.POST("/setTags", util.ValidateRequestData[*requests.SetTags], SetTags)
 	eventAdminGroup.POST("/setLinks", util.ValidateRequestData[*requests.SetLinks], SetLinks)
+	eventAdminGroup.POST("/setSchedule", util.ValidateRequestData[*requests.SetSchedule], SetSchedule)
 }
