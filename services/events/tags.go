@@ -13,7 +13,7 @@ import (
 )
 
 func SetTags(c *gin.Context, req *requests.SetTags) error {
-	tx, err := env.DB().BeginTx(c, &sql.TxOptions{})
+	tx, err := env.DB().BeginTx(c, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return wrappedErrors.New(status.InternalServerError, err)
 	}
@@ -60,7 +60,7 @@ func wrapSetTagsError(tag string, err error) error {
 	if errors.As(err, &pqErr) {
 		switch pqErr.Code.Name() {
 		case "unique_violation":
-			return wrappedErrors.New(status.TagAlreadySet, errors.New("tag already exists: "+tag))
+			return wrappedErrors.New(status.DuplicateValueEntry, errors.New("tag already exists: "+tag))
 		case "foreign_key_violation":
 			return wrappedErrors.New(status.NoSuchEvent, err)
 		}

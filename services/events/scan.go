@@ -1,6 +1,7 @@
 package events
 
 import (
+	"github.com/google/uuid"
 	"github.com/nit-app/nit-backend/env"
 	"github.com/nit-app/nit-backend/models"
 	"strings"
@@ -38,7 +39,7 @@ func ScanEventHeader(row env.Scanner, description *string) (*models.EventHeader,
 	}
 
 	header.Schedule = make([]*models.EventSchedule, 0)
-	if matchedDay.ScheduleUUID != nil {
+	if matchedDay.ScheduleUUID != (uuid.UUID{}).String() {
 		header.Schedule = append(header.Schedule, matchedDay)
 	}
 

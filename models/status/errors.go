@@ -10,7 +10,7 @@ const (
 	OtpDeliveryError    = "OTP_DELIVERY_ERROR"
 	OtpCheckingError    = "OTP_CHECKING_ERROR"
 	InternalServerError = "INTERNAL_SERVER_ERROR"
-	TagAlreadySet       = "TAG_ALREADY_SET"
+	DuplicateValueEntry = "DUPLICATE_VALUE_ENTRY"
 	NoSuchEvent         = "NO_SUCH_EVENT"
 	NoSuchUser          = "NO_SUCH_USER"
 	Forbidden           = "FORBIDDEN"
@@ -23,7 +23,8 @@ var Codes = map[string]Code{
 	NoSuchEvent:         {http.StatusNotFound, false},
 	NoSuchUser:          {http.StatusNotFound, false},
 	Forbidden:           {http.StatusForbidden, false},
-	TagAlreadySet:       {http.StatusBadRequest, true},
+	DuplicateValueEntry: {http.StatusBadRequest, true},
+	InvalidDataFormat:   {http.StatusBadRequest, true},
 }
 
 type Code struct {
