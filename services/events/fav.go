@@ -63,11 +63,6 @@ func GetUserFavorites(ctx context.Context, userUUID string) ([]*models.EventHead
 	eventHeaders := make([]*models.EventHeader, 0)
 	for rows.Next() {
 		eventObject, err := ScanEventHeader(rows, nil)
-
-		if eventObject.IsDraft {
-			continue
-		}
-
 		if err != nil {
 			return nil, errors.New(status.InternalServerError, err)
 		}
