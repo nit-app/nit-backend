@@ -28,25 +28,13 @@ func SetSchedule(ctx context.Context, eventUUID string, schedule []*models.Event
 		return wrappedErrors.New(status.InternalServerError, err)
 	}
 
-	for _, day := range schedule {
-
-		if err = checkSchedule(day); err != nil {
+	for _, item := range schedule {
+		if err := insertScheduleItem(ctx, tx, eventUUID, item); err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return wrappedErrors.New(status.InternalServerError, rollbackErr)
 			}
 
-			return err
-		}
-
-		_, err := tx.ExecContext(ctx, "insert into event_schedule (scheduleUuid, \"eventUuid\", beginsAt, endsAt) values ($1, $2, $3, $4)",
-			uuid.New(), eventUUID, day.BeginsAt, day.EndsAt)
-
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return wrappedErrors.New(status.InternalServerError, rollbackErr)
-			}
-
-			return wrapScheduleInsertError(day, err)
+			return wrapScheduleInsertError(item, err)
 		}
 	}
 
@@ -57,26 +45,38 @@ func SetSchedule(ctx context.Context, eventUUID string, schedule []*models.Event
 	return nil
 }
 
-func checkSchedule(schedule *models.EventSchedule) error {
+func insertScheduleItem(ctx context.Context, tx *sql.Tx, eventUUID string, item *models.EventSchedule) error {
+	var err error
 
-	if schedule.BeginsAt.After(schedule.EndsAt) {
-
-		return wrappedErrors.New(status.InvalidDataFormat, errors.New(fmt.Sprintf("event ends before it starts: %s - %s", schedule.BeginsAt, schedule.EndsAt)))
+	if err = checkSchedule(item); err == nil {
+		_, err = tx.ExecContext(ctx, "insert into event_schedule (scheduleUuid, \"eventUuid\", beginsAt, endsAt) values ($1, $2, $3, $4)",
+			uuid.New(), eventUUID, item.BeginsAt, item.EndsAt)
 	}
+
+	return err
+}
+
+func checkSchedule(item *models.EventSchedule) error {
+	if item.BeginsAt.After(item.EndsAt) {
+		return wrappedErrors.New(status.InvalidDataFormat, fmt.Errorf("event ends before it starts: %s - %s", item.BeginsAt, item.EndsAt))
+	}
+
 	return nil
 }
 
-func wrapScheduleInsertError(schedule *models.EventSchedule, err error) error {
+func wrapScheduleInsertError(item *models.EventSchedule, err error) error {
 	var pqErr *pq.Error
+	var formatErr *wrappedErrors.Error
 
 	if errors.As(err, &pqErr) {
 		switch pqErr.Code.Name() {
 		case "unique_violation":
-			return wrappedErrors.New(status.TagAlreadySet, errors.New(fmt.Sprintf("duplicate schedule: %s - %s", schedule.BeginsAt, schedule.EndsAt))) // future check
-
+			return wrappedErrors.New(status.DuplicateValueEntry, fmt.Errorf("duplicate schedule: %s - %s", item.BeginsAt, item.EndsAt))
 		case "foreign_key_violation":
 			return wrappedErrors.New(status.NoSuchEvent, err)
 		}
+	} else if errors.As(err, &formatErr) {
+		return err
 	}
 
 	return wrappedErrors.New(status.InternalServerError, err)
