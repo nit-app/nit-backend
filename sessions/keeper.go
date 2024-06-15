@@ -3,6 +3,7 @@ package sessions
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 const (
@@ -33,7 +34,8 @@ func resetSession(c *gin.Context) string {
 		panic(err)
 	}
 
-	c.SetCookie(CookieName, token, ttlSecs, "/", "", false, true)
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie(CookieName, token, ttlSecs, "/", "", true, true)
 	return token
 }
 
