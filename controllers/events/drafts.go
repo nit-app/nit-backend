@@ -2,9 +2,11 @@ package events
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/nit-app/nit-backend/controllers/util"
 	"github.com/nit-app/nit-backend/models"
 	"github.com/nit-app/nit-backend/models/requests"
+	"github.com/nit-app/nit-backend/models/status"
 	"github.com/nit-app/nit-backend/response"
 	"github.com/nit-app/nit-backend/services/events"
 )
@@ -55,6 +57,23 @@ func SetLinks(c *gin.Context) {
 func SetSchedule(c *gin.Context) {
 	req := util.GetRequestData[*requests.SetSchedule](c)
 	err := events.SetSchedule(c, req.EventUUID, req.Schedule)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	c.JSON(response.Ok(true))
+}
+
+func Publish(c *gin.Context) {
+	req := c.Param("uuid")
+	eventUUID, err := uuid.Parse(req)
+	if err != nil {
+		c.AbortWithStatusJSON(response.ErrorWithText(status.InvalidDataFormat, err.Error()))
+		return
+	}
+
+	err = events.Publish(c, eventUUID)
 	if err != nil {
 		_ = c.Error(err)
 		return

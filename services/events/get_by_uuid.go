@@ -13,6 +13,17 @@ import (
 )
 
 func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
+	tx, err := env.DB().BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	if err != nil {
+		return nil, wrappedErrors.New(status.InternalServerError, err)
+	}
+
+	defer tx.Commit()
+
+	return txGetByUUID(ctx, tx, uuid)
+}
+
+func txGetByUUID(ctx context.Context, tx *sql.Tx, uuid uuid.UUID) (*models.Event, error) {
 	const headerQuery = `
 		select
 			e.uuid,
@@ -75,7 +86,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 		where 
 		    el."eventUuid" = $1`
 
-	headerRow := env.DB().QueryRowContext(ctx, headerQuery, uuid)
+	headerRow := tx.QueryRowContext(ctx, headerQuery, uuid)
 
 	event := &models.Event{}
 
@@ -88,7 +99,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 
 	event.EventHeader = eventHeader
 
-	scheduleRows, err := env.DB().QueryContext(ctx, scheduleQuery, uuid)
+	scheduleRows, err := tx.QueryContext(ctx, scheduleQuery, uuid)
 	if err != nil {
 		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
@@ -100,7 +111,7 @@ func GetByUUID(ctx context.Context, uuid uuid.UUID) (*models.Event, error) {
 		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
 
-	linkRows, err := env.DB().QueryContext(ctx, linksQuery, uuid)
+	linkRows, err := tx.QueryContext(ctx, linksQuery, uuid)
 	if err != nil {
 		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
