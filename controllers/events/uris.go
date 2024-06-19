@@ -13,6 +13,12 @@ func Register(engine *gin.Engine) {
 	eventsGroup.POST("/lookup", util.ValidateRequestData[requests.EventLookupFilters], LookupEvents)
 	eventsGroup.GET("/get/:uuid", GetEvent)
 
+	eventsAuthorizedGroup := engine.Group("/v1/events")
+	eventsAuthorizedGroup.Use(access.RequireAuth)
+	eventsAuthorizedGroup.POST("/fav/:uuid/add", AddToFavorites)
+	eventsAuthorizedGroup.POST("/fav/:uuid/remove", RemoveFromFavorites)
+	eventsAuthorizedGroup.GET("/fav", GetMyFavorites)
+
 	eventAdminGroup := engine.Group("/v1/eventAdmin")
 	eventAdminGroup.Use(access.RequireAuth, access.RequireAdmin)
 

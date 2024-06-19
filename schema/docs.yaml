@@ -14,7 +14,7 @@ tags:
   - name: user
     description: Operations about user
   - name: events
-    description: Lookup events
+    description: Operations about events
   - name: eventAdmin
     description: Manage drafts
 
@@ -187,6 +187,62 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
+
+  /events/fav:
+    get:
+      tags:
+        - events
+      summary: Get favorite events for current user
+      operationId: get_fav_events
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventHeaderResponse'
+
+  /events/fav/{uuid}/add:
+    post:
+      tags:
+        - events
+      summary: Add an event to favorites
+      operationId: addToFav
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
+  /events/fav/{uuid}/remove:
+    post:
+      tags:
+        - events
+      summary: Remove an event from favorites
+      operationId: removeFromFav
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
 
   /eventAdmin/drafts:
     get:
