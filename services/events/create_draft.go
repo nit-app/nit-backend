@@ -1,6 +1,7 @@
 package events
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -14,6 +15,13 @@ import (
 )
 
 func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeader, error) {
+	const query = `
+		insert into events 
+		    (uuid, title, description, pricelow, pricehigh,
+		     agelimitlow, agelimithigh, location, ownerinfo, 
+		     hasCertificate, plaindescription, isdraft, ismachinegenerated) 
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
+
 	header.IsDraft = true
 
 	newUuid := uuid.New()
@@ -24,8 +32,10 @@ func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeade
 		return nil, wrappedErrors.New(status.InternalServerError, err)
 	}
 
-	_, err = tx.ExecContext(c, "insert into events (uuid, title, description, pricelow, pricehigh, agelimitlow, agelimithigh, location, ownerinfo, hasCertificate, plaindescription, isdraft, ismachinegenerated) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
-		header.UUID, header.Title, " ", header.PriceLow, header.PriceHigh, header.AgeLimitLow, header.AgeLimitHigh, header.Location, header.OwnerInfo, header.HasCertificate, header.PlainDescription, header.IsDraft, header.IsMachineGenerated)
+	_, err = tx.ExecContext(c, query,
+		header.UUID, header.Title, " ", header.PriceLow, header.PriceHigh,
+		header.AgeLimitLow, header.AgeLimitHigh, header.Location, header.OwnerInfo,
+		header.HasCertificate, header.PlainDescription, header.IsDraft, header.IsMachineGenerated)
 
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -34,7 +44,7 @@ func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeade
 
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
-			return nil, wrappedErrors.New(status.InvalidDataFormat, err)
+			return nil, wrappedErrors.New(status.InvalidDataFormatUnknown, err)
 		}
 
 		return nil, wrappedErrors.New(status.InternalServerError, err)
@@ -55,7 +65,7 @@ func CreateDraft(c *gin.Context, header *models.EventHeader) (*models.EventHeade
 	return getDraftHeader(c, newUuid.String())
 }
 
-func getDraftHeader(c *gin.Context, uuid string) (*models.EventHeader, error) {
+func getDraftHeader(ctx context.Context, uuid string) (*models.EventHeader, error) {
 	const draftQuery = `
 		select
 			e.uuid,
@@ -95,7 +105,7 @@ func getDraftHeader(c *gin.Context, uuid string) (*models.EventHeader, error) {
 			es.beginsat,
 			es.endsat`
 
-	draftRow := env.DB().QueryRowContext(c, draftQuery, uuid)
+	draftRow := env.DB().QueryRowContext(ctx, draftQuery, uuid)
 
 	draftHeader, err := ScanEventHeader(draftRow, nil)
 	if err != nil {

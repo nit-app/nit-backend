@@ -62,3 +62,8 @@ func SetSchedule(c *gin.Context) {
 
 	c.JSON(response.Ok(true))
 }
+
+func EditDraft(c *gin.Context) {
+	req := util.GetRequestData[*requests.EditDraft](c)
+	util.ServiceCall(c, events.EditDraft, req)
+}
