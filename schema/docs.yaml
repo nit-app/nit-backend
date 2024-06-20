@@ -200,7 +200,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventHeaderResponse'
+                $ref: '#/components/schemas/EventsResponse'
 
   /events/fav/{uuid}/add:
     post:
@@ -333,6 +333,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Ok'
+
+  /eventAdmin/edit:
+    post:
+      tags:
+        - eventAdmin
+      summary: Edit a draft
+      operationId: editDraft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditDraftRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventHeaderResponse'
+
 components:
   schemas:
 
@@ -682,3 +702,60 @@ components:
           type: string
           format: date
           example: '2024-06-06T18:00:00+05:00'
+
+    EditDraftRequest:
+      type: object
+      required:
+        - beginsAt
+        - endsAt
+      properties:
+        eventUuid:
+          type: string
+          example: 'f70dd14f-8e24-11ee-8542-fa163e445fa2'
+        object:
+          $ref: '#/components/schemas/EditHeaderRequest'
+        description:
+          type: string
+          example: 'Description of a test event11'
+
+    EditHeaderRequest:
+      type: object
+      required:
+        - title
+        - priceLow
+        - priceHigh
+        - ageLimitLow
+        - ageLimitHigh
+        - location
+        - ownerInfo
+        - plainDescription
+      properties:
+        title:
+          type: string
+          example: "First draft!"
+        priceLow:
+          type: integer
+          example: 100
+        priceHigh:
+          type: integer
+          example: 500
+        ageLimitLow:
+          type: integer
+          example: 12
+        ageLimitHigh:
+          type: integer
+          example: 18
+        location:
+          type: string
+          example: "56.822523, 60.605641 улица Декабристов, 77Б, Екатеринбург, Свердловская область, 620063"
+        ownerInfo:
+          type: string
+          example: "ООО Тестовые Решения"
+        hasCertificate:
+          type: boolean
+        plainDescription:
+          type: string
+          example: "a paid event, come and have fun if you can afford it"
+        isMachineGenerated:
+          type: boolean
+          example: false
