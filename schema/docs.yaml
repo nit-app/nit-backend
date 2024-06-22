@@ -706,8 +706,8 @@ components:
     EditDraftRequest:
       type: object
       required:
-        - beginsAt
-        - endsAt
+        - eventUuid
+        - object
       properties:
         eventUuid:
           type: string
