@@ -333,6 +333,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Ok'
+
+  /eventAdmin/publish/{uuid}:
+    post:
+      tags:
+        - eventAdmin
+      summary: Publish a draft
+      operationId: publishDraft
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+
 components:
   schemas:
 
