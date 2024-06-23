@@ -28,4 +28,5 @@ func Register(engine *gin.Engine) {
 	eventAdminGroup.POST("/setLinks", util.ValidateRequestData[*requests.SetLinks], SetLinks)
 	eventAdminGroup.POST("/setSchedule", util.ValidateRequestData[*requests.SetSchedule], SetSchedule)
 	eventAdminGroup.POST("/edit", util.ValidateRequestData[*requests.EditDraft], EditDraft)
+	eventAdminGroup.POST("/publish/:uuid", Publish)
 }

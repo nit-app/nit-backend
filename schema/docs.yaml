@@ -355,7 +355,6 @@ paths:
 
 components:
   schemas:
-
     EventResponse:
       type: object
       properties:

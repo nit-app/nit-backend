@@ -12,10 +12,17 @@ const (
 	OtpCheckingError         = "OTP_CHECKING_ERROR"
 	InternalServerError      = "INTERNAL_SERVER_ERROR"
 	DuplicateValueEntry      = "DUPLICATE_VALUE_ENTRY"
+	MalformedEvent           = "MALFORMED_EVENT"
+	AlreadyPublished         = "ALREADY_PUBLISHED"
 	NoSuchEvent              = "NO_SUCH_EVENT"
 	NoSuchUser               = "NO_SUCH_USER"
 	Forbidden                = "FORBIDDEN"
 )
+
+type Code struct {
+	HTTP       int
+	ExposeText bool
+}
 
 var Codes = map[string]Code{
 	Unauthorized:             {http.StatusUnauthorized, true},
@@ -27,9 +34,5 @@ var Codes = map[string]Code{
 	DuplicateValueEntry:      {http.StatusBadRequest, true},
 	InvalidDataFormat:        {http.StatusBadRequest, true},
 	InvalidDataFormatUnknown: {http.StatusBadRequest, false},
-}
-
-type Code struct {
-	HTTP       int
-	ExposeText bool
+	MalformedEvent:           {http.StatusBadRequest, true},
 }
