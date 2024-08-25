@@ -29,7 +29,6 @@ func main() {
 	engine.Use(ginzap.Ginzap(zap.L(), time.RFC3339, true))
 	engine.Use(ginzap.RecoveryWithZap(zap.L(), true))
 
-	setCors(engine)
 	engine.Use(controllers.HandleErrors)
 	engine.Use(controllers.CORS)
 
