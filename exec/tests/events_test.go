@@ -26,13 +26,7 @@ func (s *EventsSuite) TestBasicLookup() {
 		To:   time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
 	}
 
-	resp, err := s.client.R().SetResult(new(responses.BaseResponse[[]models.EventHeader])).SetBody(filter).Post("/events/lookup")
-	s.Require().NoError(err)
-
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
-
-	events, ok := resp.Result().(*responses.BaseResponse[[]models.EventHeader])
-	s.Require().True(ok)
+	events := s.lookupEvents(filter)
 
 	s.Require().True(len(events.Object) > 0, "there should be at least one event")
 
@@ -46,13 +40,7 @@ func (s *EventsSuite) TestAheadLookup() {
 		To:   time.Date(2055, time.January, 1, 0, 0, 0, 0, time.UTC),
 	}
 
-	resp, err := s.client.R().SetResult(new(responses.BaseResponse[[]models.EventHeader])).SetBody(aheadFilter).Post("/events/lookup")
-	s.Require().NoError(err)
-
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
-
-	events, ok := resp.Result().(*responses.BaseResponse[[]models.EventHeader])
-	s.Require().True(ok)
+	events := s.lookupEvents(aheadFilter)
 
 	s.Require().True(len(events.Object) == 0, "there shouldn't be any forthcoming event")
 }
@@ -63,7 +51,62 @@ func (s *EventsSuite) TestExcludePaid() {
 		To:          time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
 		ExcludePaid: true,
 	}
+	events := s.lookupEvents(filter)
 
+	s.Require().True(len(events.Object) > 0, "there should be at least one event")
+
+	for _, event := range events.Object {
+		s.Require().True(event.PriceLow == 0, "events should be free")
+	}
+}
+
+func (s *EventsSuite) TestExcludeAgeRestricted() {
+	filter := requests.EventLookupFilters{
+		From:                 time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+		To:                   time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
+		ExcludeAgeRestricted: true,
+	}
+
+	events := s.lookupEvents(filter)
+
+	s.Require().True(len(events.Object) > 0, "there should be at least one event")
+
+	for _, event := range events.Object {
+		s.Require().True(event.AgeLimitLow == 0 && event.AgeLimitHigh == 0, "events should not be restricted by age")
+	}
+}
+
+func (s *EventsSuite) TestTagsLookup() {
+	tag := "test"
+	filter := requests.EventLookupFilters{
+		From: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+		To:   time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
+		Tags: []string{tag},
+	}
+
+	events := s.lookupEvents(filter)
+
+	s.Require().True(len(events.Object) > 0, "there should be at least one event")
+
+	for _, event := range events.Object {
+		s.Require().Contains(event.Tags, tag, "events should have the tag from filters")
+	}
+}
+
+func (s *EventsSuite) TestTagsEmptyLookup() {
+	tag := "iAmNotATag,Actually"
+	filter := requests.EventLookupFilters{
+		From: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+		To:   time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
+		Tags: []string{tag},
+	}
+
+	events := s.lookupEvents(filter)
+
+	s.Require().Empty(events.Object, "there should be no events found")
+}
+
+func (s *EventsSuite) lookupEvents(filter requests.EventLookupFilters) *responses.BaseResponse[[]models.EventHeader] {
 	resp, err := s.client.R().SetResult(new(responses.BaseResponse[[]models.EventHeader])).SetBody(filter).Post("/events/lookup")
 	s.Require().NoError(err)
 
@@ -72,11 +115,7 @@ func (s *EventsSuite) TestExcludePaid() {
 	events, ok := resp.Result().(*responses.BaseResponse[[]models.EventHeader])
 	s.Require().True(ok)
 
-	s.Require().True(len(events.Object) > 0, "there should be at least one event")
-
-	for _, event := range events.Object {
-		s.Require().True(event.PriceLow == 0 && event.PriceHigh == 0, "events should be free")
-	}
+	return events
 }
 
 func TestEvents(t *testing.T) {
