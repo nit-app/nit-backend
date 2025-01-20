@@ -53,7 +53,7 @@ func wrapLinkInsertError(link string, err error) error {
 	if errors.As(err, &pqErr) {
 		switch pqErr.Code.Name() {
 		case "unique_violation":
-			return wrappedErrors.New(status.DuplicateValueEntry, errors.New("duplicate link: "+link)) // future check
+			return wrappedErrors.New(status.DuplicateValueEntry, errors.New("duplicate link: "+link))
 
 		case "foreign_key_violation":
 			return wrappedErrors.New(status.NoSuchEvent, err)
