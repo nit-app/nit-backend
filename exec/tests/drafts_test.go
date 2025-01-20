@@ -8,7 +8,6 @@ import (
 	"github.com/nit-app/nit-backend/models/responses"
 	"github.com/stretchr/testify/suite"
 	"net/http"
-	"sort"
 	"testing"
 	"time"
 )
@@ -39,11 +38,15 @@ func (s *DraftsSuite) SetupSuite() {
 	s.draft = s.createDraft().Object
 	s.links = []*models.EventExternalLink{{Title: "link1", URL: "https://vk.com/durov"}, {Title: "link2", URL: "https://pkg.go.dev/testing"}}
 	s.schedule = []*models.EventSchedule{
-		{BeginsAt: time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC),
-			EndsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC)},
-		{BeginsAt: time.Date(2025, time.January, 11, 0, 0, 0, 0, time.UTC),
-			EndsAt: time.Date(2025, time.January, 13, 0, 0, 0, 0, time.UTC)}}
-
+		{
+			BeginsAt: time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC),
+			EndsAt:   time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			BeginsAt: time.Date(2025, time.January, 11, 0, 0, 0, 0, time.UTC),
+			EndsAt:   time.Date(2025, time.January, 13, 0, 0, 0, 0, time.UTC),
+		},
+	}
 }
 
 func (s *DraftsSuite) TestDraftCreation() {
@@ -51,15 +54,15 @@ func (s *DraftsSuite) TestDraftCreation() {
 
 	s.Require().NotEmpty(draft.Object.UUID, "draft uuid should be set")
 	s.Require().True(draft.Object.IsDraft, "isDraft should be True")
-	s.Require().Equal(draft.Object.Title, s.draftToCreate.Title, "title should be saved")
+	s.Require().Equal(s.draftToCreate.Title, draft.Object.Title, "title should be saved")
 	s.Require().Empty(draft.Object.Schedule, "drafts schedule should be empty")
 
 	draftResult := *s.getByUUID(draft.Object.UUID).Object.EventHeader
 
-	s.Require().Equal(draftResult, draft.Object, "draft must be saved correctly")
+	s.Require().Equal(draft.Object, draftResult, "draft must be saved correctly")
 }
 
-func (s *DraftsSuite) TestFalseDraftCreation() {
+func (s *DraftsSuite) TestInvalidDraftCreation() {
 	emptyDraft := models.EventHeader{
 		Title: "Testing empty draft",
 	}
@@ -67,7 +70,7 @@ func (s *DraftsSuite) TestFalseDraftCreation() {
 	resp, err := s.client.R().SetResult(new(responses.BaseResponse[models.EventHeader])).SetBody(emptyDraft).Post("/eventAdmin/create")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "draft without essential info should not be accepted")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "draft without essential info should not be accepted")
 
 	wrongDraft := models.EventHeader{
 		Title:            "Testing wrong draft",
@@ -84,7 +87,7 @@ func (s *DraftsSuite) TestFalseDraftCreation() {
 	_, err = s.client.R().SetResult(new(responses.BaseResponse[models.EventHeader])).SetBody(wrongDraft).Post("/eventAdmin/create")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "draft with incorrect data should not be accepted")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "draft with incorrect data should not be accepted")
 }
 
 func (s *DraftsSuite) TestSetTags() {
@@ -95,14 +98,14 @@ func (s *DraftsSuite) TestSetTags() {
 	resp, err := s.client.R().SetBody(setDuplicateTags).Post("/eventAdmin/setTags")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "duplicate tags should not be set")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "duplicate tags should not be set")
 
-	setTagsFalseEvent := requests.SetTags{EventUUID: uuid.New().String(), Tags: []string{"coolest", "best"}}
+	invalidEventReq := requests.SetTags{EventUUID: uuid.New().String(), Tags: []string{"coolest", "best"}}
 
-	resp, err = s.client.R().SetBody(setTagsFalseEvent).Post("/eventAdmin/setTags")
+	resp, err = s.client.R().SetBody(invalidEventReq).Post("/eventAdmin/setTags")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusNotFound, "non existent events should not get tags")
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode(), "non existent events should not get tags")
 }
 
 func (s *DraftsSuite) TestSetLinks() {
@@ -113,7 +116,7 @@ func (s *DraftsSuite) TestSetLinks() {
 	resp, err := s.client.R().SetBody(setLinksFalseEvent).Post("/eventAdmin/setLinks")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusNotFound, "non existent events should not get links")
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode(), "non existent events should not get links")
 
 	duplicateLinks := []*models.EventExternalLink{{Title: "link1", URL: "https://vk.com/durov"}, {Title: "link2", URL: "https://vk.com/durov"}}
 
@@ -122,51 +125,59 @@ func (s *DraftsSuite) TestSetLinks() {
 	resp, err = s.client.R().SetBody(setDuplicateLinks).Post("/eventAdmin/setLinks")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "duplicate links should not be set")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "duplicate links should not be set")
 
 	nonURLLinks := []*models.EventExternalLink{{Title: "link1", URL: "durov is my man"}}
 
-	setNonURLLinks := requests.SetLinks{EventUUID: s.draft.UUID, Links: nonURLLinks}
+	nonURLLinksReq := requests.SetLinks{EventUUID: s.draft.UUID, Links: nonURLLinks}
 
-	resp, err = s.client.R().SetBody(setNonURLLinks).Post("/eventAdmin/setLinks")
+	resp, err = s.client.R().SetBody(nonURLLinksReq).Post("/eventAdmin/setLinks")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "non-URL links should not be accepted")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "non-URL links should not be accepted")
 }
 
 func (s *DraftsSuite) TestSetSchedule() {
 	s.setSchedule(s.draft.UUID)
 
 	wrongSchedule := []*models.EventSchedule{
-		{BeginsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
-			EndsAt: time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC)}}
+		{
+			BeginsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
+			EndsAt:   time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC),
+		},
+	}
 
 	setWrongSchedule := requests.SetSchedule{EventUUID: s.draft.UUID, Schedule: wrongSchedule}
 
 	resp, err := s.client.R().SetBody(setWrongSchedule).Post("/eventAdmin/setSchedule")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "schedule, where start date is later than end date, should not be set")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "schedule, where start date is later than end date, should not be set")
 
 	duplicateSchedule := []*models.EventSchedule{
-		{BeginsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
-			EndsAt: time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC)},
-		{BeginsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
-			EndsAt: time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC)}}
+		{
+			BeginsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
+			EndsAt:   time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			BeginsAt: time.Date(2025, time.January, 9, 0, 0, 0, 0, time.UTC),
+			EndsAt:   time.Date(2025, time.January, 7, 0, 0, 0, 0, time.UTC),
+		},
+	}
 
 	setDuplicateSchedule := requests.SetSchedule{EventUUID: s.draft.UUID, Schedule: duplicateSchedule}
 
 	resp, err = s.client.R().SetBody(setDuplicateSchedule).Post("/eventAdmin/setSchedule")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "schedule with two identical dates should not be set")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "schedule with two identical dates should not be set")
 
 	setScheduleFalseEvent := requests.SetSchedule{EventUUID: uuid.New().String(), Schedule: s.schedule}
 
 	resp, err = s.client.R().SetBody(setScheduleFalseEvent).Post("/eventAdmin/setSchedule")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusNotFound, "non existent events should not get schedule")
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode(), "non existent events should not get schedule")
 }
 
 func (s *DraftsSuite) TestEditDraft() {
@@ -182,23 +193,23 @@ func (s *DraftsSuite) TestEditDraft() {
 	resp, err := s.client.R().SetResult(new(responses.BaseResponse[models.EventHeader])).SetBody(editDraftRequest).Post("/eventAdmin/edit")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	headerResult, ok := resp.Result().(*responses.BaseResponse[models.EventHeader])
 	s.Require().True(ok)
 
-	s.Require().Equal(headerResult.Object.Title, headerToEdit.Title, "new title should be set")
+	s.Require().Equal(headerToEdit.Title, headerResult.Object.Title, "new title should be set")
 	s.Require().True(headerResult.Object.HasCertificate, "hasCertificate should be set correctly")
 
 	draftResult := s.getByUUID(headerResult.Object.UUID)
-	s.Require().Equal(draftResult.Object.Description, editDraftRequest.Description, "description should be set correctly")
+	s.Require().Equal(editDraftRequest.Description, draftResult.Object.Description, "description should be set correctly")
 
 	editDraftRequest.EventUUID = uuid.New().String()
 
 	resp, err = s.client.R().SetResult(new(responses.BaseResponse[models.EventHeader])).SetBody(editDraftRequest).Post("/eventAdmin/edit")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusNotFound, "editing a non-existing event should raise an error")
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode(), "editing a non-existing event should raise an error")
 }
 
 func (s *DraftsSuite) TestPublishDraft() {
@@ -207,7 +218,7 @@ func (s *DraftsSuite) TestPublishDraft() {
 	resp, err := s.client.R().SetPathParam("uuid", draft.UUID).Post("/eventAdmin/publish/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "drafts without tags and schedule should not be published")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "drafts without tags and schedule should not be published")
 
 	s.setTags(draft.UUID)
 	s.setLinks(draft.UUID)
@@ -216,7 +227,7 @@ func (s *DraftsSuite) TestPublishDraft() {
 	resp, err = s.client.R().SetPathParam("uuid", draft.UUID).Post("/eventAdmin/publish/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK, "drafts with tags, schedule and links can be published")
+	s.Require().Equal(http.StatusOK, resp.StatusCode(), "drafts with tags, schedule and links can be published")
 
 	publishedEvent := s.getByUUID(draft.UUID).Object
 	s.Require().False(publishedEvent.IsDraft, "after publishing isDraft should be false")
@@ -224,14 +235,25 @@ func (s *DraftsSuite) TestPublishDraft() {
 	resp, err = s.client.R().SetPathParam("uuid", draft.UUID).Post("/eventAdmin/publish/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "publishing an event twice should not be allowed")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "publishing an event twice should not be allowed")
+
+	editPublishedEventRequest := requests.EditDraft{
+		EventUUID:   publishedEvent.UUID,
+		Object:      &s.draftToCreate,
+		Description: "Too late to add a description!",
+	}
+
+	resp, err = s.client.R().SetResult(new(responses.BaseResponse[models.EventHeader])).SetBody(editPublishedEventRequest).Post("/eventAdmin/edit")
+	s.Require().NoError(err)
+
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode(), "editing a published event should not be allowed")
 }
 
 func (s *DraftsSuite) TestGetAllDrafts() {
 	resp, err := s.client.R().SetResult(new(responses.BaseResponse[[]models.EventHeader])).Get("/eventAdmin/drafts")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	drafts, ok := resp.Result().(*responses.BaseResponse[[]models.EventHeader])
 	s.Require().True(ok)
@@ -247,14 +269,15 @@ func (s *DraftsSuite) TestGetAllDrafts() {
 
 		s.Require().True(draft.IsDraft, "isDraft must be true")
 	}
-	s.Require().True(containsAddedDraft, "draft added in SetUp must be returned")
+
+	s.Require().True(containsAddedDraft, "draft added in Setup must be returned")
 }
 
 func (s *DraftsSuite) getByUUID(uuid string) *responses.BaseResponse[models.Event] {
 	resp, err := s.client.R().SetPathParam("uuid", uuid).SetResult(new(responses.BaseResponse[models.Event])).Get("/events/get/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	event, ok := resp.Result().(*responses.BaseResponse[models.Event])
 	s.Require().True(ok)
@@ -266,7 +289,7 @@ func (s *DraftsSuite) createDraft() *responses.BaseResponse[models.EventHeader] 
 	resp, err := s.client.R().SetResult(new(responses.BaseResponse[models.EventHeader])).SetBody(s.draftToCreate).Post("/eventAdmin/create")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	draft, ok := resp.Result().(*responses.BaseResponse[models.EventHeader])
 	s.Require().True(ok)
@@ -280,14 +303,11 @@ func (s *DraftsSuite) setTags(uuid string) {
 	resp, err := s.client.R().SetBody(setTags).Post("/eventAdmin/setTags")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	tagsResult := s.getByUUID(uuid).Object.Tags
 
-	sort.Strings(tagsResult)
-	sort.Strings(setTags.Tags)
-
-	s.Require().Equal(tagsResult, setTags.Tags, "set tags must be saved correctly")
+	s.Require().ElementsMatch(setTags.Tags, tagsResult)
 }
 
 func (s *DraftsSuite) setLinks(uuid string) {
@@ -296,11 +316,11 @@ func (s *DraftsSuite) setLinks(uuid string) {
 	resp, err := s.client.R().SetBody(setLinks).Post("/eventAdmin/setLinks")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	linksResult := s.getByUUID(uuid).Object.Links
 
-	s.Require().Equal(len(linksResult), len(s.links), "set links must be saved")
+	s.Require().Equal(len(s.links), len(linksResult), "set links must be saved")
 }
 
 func (s *DraftsSuite) setSchedule(uuid string) {
@@ -309,11 +329,11 @@ func (s *DraftsSuite) setSchedule(uuid string) {
 	resp, err := s.client.R().SetBody(setSchedule).Post("/eventAdmin/setSchedule")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	scheduleResult := s.getByUUID(uuid).Object.Schedule
 
-	s.Require().Equal(len(scheduleResult), len(s.schedule), "set schedule must be saved")
+	s.Require().Equal(len(s.schedule), len(scheduleResult), "set schedule must be saved")
 }
 
 func TestDrafts(t *testing.T) {

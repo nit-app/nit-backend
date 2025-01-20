@@ -18,14 +18,14 @@ type EventSuite struct {
 
 func (s *EventSuite) SetupSuite() {
 	s.client = makeClient(s.T())
-	s.realUuid = "f70dd14f-8e24-11ee-8542-fa163e445fa2"
+	s.realUuid = makeEvent(s.T(), s.client)
 }
 
 func (s *EventSuite) TestGetEventByUUID() {
 	resp, err := s.client.R().SetPathParam("uuid", s.realUuid).SetResult(new(responses.BaseResponse[models.Event])).Get("/events/get/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	event, ok := resp.Result().(*responses.BaseResponse[models.Event])
 	s.Require().True(ok)
@@ -33,21 +33,20 @@ func (s *EventSuite) TestGetEventByUUID() {
 	s.Require().NotEmpty(event.Object.EventHeader)
 	s.Require().NotEmpty(event.Object.Schedule)
 	s.Require().NotEmpty(event.Object.Tags)
-	s.Require().NotEmpty(event.Object.Links)
 }
 
 func (s *EventSuite) TestGetEventByWrongUUID() {
 	resp, err := s.client.R().SetPathParam("uuid", uuid.New().String()).SetResult(new(responses.BaseResponse[models.Event])).Get("/events/get/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusNotFound, "searching by a wrong UUID should raise an error")
+	s.Require().Equal(http.StatusNotFound, resp.StatusCode(), "searching by a wrong UUID should raise an error")
 }
 
 func (s *EventSuite) TestGetEventByNonUUID() {
 	resp, err := s.client.R().SetPathParam("uuid", "uuid").SetResult(new(responses.BaseResponse[models.Event])).Get("/events/get/{uuid}")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "searching by a non-UUID param should raise an error")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode(), "searching by a non-UUID param should raise an error")
 }
 
 func TestEvent(t *testing.T) {

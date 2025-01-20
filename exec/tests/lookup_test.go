@@ -11,16 +11,16 @@ import (
 	"time"
 )
 
-type EventsSuite struct {
+type LookupSuite struct {
 	suite.Suite
 	client *resty.Client
 }
 
-func (s *EventsSuite) SetupSuite() {
+func (s *LookupSuite) SetupSuite() {
 	s.client = makeClient(s.T())
 }
 
-func (s *EventsSuite) TestBasicLookup() {
+func (s *LookupSuite) TestBasicLookup() {
 	filter := requests.EventLookupFilters{
 		From: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
 		To:   time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -34,7 +34,7 @@ func (s *EventsSuite) TestBasicLookup() {
 	s.Require().NotEmpty(events.Object[0].Title, "event title should be set")
 }
 
-func (s *EventsSuite) TestAheadLookup() {
+func (s *LookupSuite) TestAheadLookup() {
 	aheadFilter := requests.EventLookupFilters{
 		From: time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
 		To:   time.Date(2055, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -45,7 +45,7 @@ func (s *EventsSuite) TestAheadLookup() {
 	s.Require().True(len(events.Object) == 0, "there shouldn't be any forthcoming event")
 }
 
-func (s *EventsSuite) TestExcludePaid() {
+func (s *LookupSuite) TestExcludePaid() {
 	filter := requests.EventLookupFilters{
 		From:        time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
 		To:          time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -60,7 +60,7 @@ func (s *EventsSuite) TestExcludePaid() {
 	}
 }
 
-func (s *EventsSuite) TestExcludeAgeRestricted() {
+func (s *LookupSuite) TestExcludeAgeRestricted() {
 	filter := requests.EventLookupFilters{
 		From:                 time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
 		To:                   time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -76,7 +76,7 @@ func (s *EventsSuite) TestExcludeAgeRestricted() {
 	}
 }
 
-func (s *EventsSuite) TestTagsLookup() {
+func (s *LookupSuite) TestTagsLookup() {
 	tag := "test"
 	filter := requests.EventLookupFilters{
 		From: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -93,7 +93,7 @@ func (s *EventsSuite) TestTagsLookup() {
 	}
 }
 
-func (s *EventsSuite) TestTagsEmptyLookup() {
+func (s *LookupSuite) TestTagsEmptyLookup() {
 	tag := "iAmNotATag,Actually"
 	filter := requests.EventLookupFilters{
 		From: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -106,11 +106,11 @@ func (s *EventsSuite) TestTagsEmptyLookup() {
 	s.Require().Empty(events.Object, "there should be no events found")
 }
 
-func (s *EventsSuite) lookupEvents(filter requests.EventLookupFilters) *responses.BaseResponse[[]models.EventHeader] {
+func (s *LookupSuite) lookupEvents(filter requests.EventLookupFilters) *responses.BaseResponse[[]models.EventHeader] {
 	resp, err := s.client.R().SetResult(new(responses.BaseResponse[[]models.EventHeader])).SetBody(filter).Post("/events/lookup")
 	s.Require().NoError(err)
 
-	s.Require().Equal(resp.StatusCode(), http.StatusOK)
+	s.Require().Equal(http.StatusOK, resp.StatusCode())
 
 	events, ok := resp.Result().(*responses.BaseResponse[[]models.EventHeader])
 	s.Require().True(ok)
@@ -118,6 +118,6 @@ func (s *EventsSuite) lookupEvents(filter requests.EventLookupFilters) *response
 	return events
 }
 
-func TestEvents(t *testing.T) {
-	suite.Run(t, new(EventsSuite))
+func TestLookup(t *testing.T) {
+	suite.Run(t, new(LookupSuite))
 }

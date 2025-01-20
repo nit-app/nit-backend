@@ -14,19 +14,17 @@ type FavSuite struct {
 	suite.Suite
 	client   *resty.Client
 	realUuid string
-	nonUuid  string
 }
 
 func (s *FavSuite) SetupSuite() {
 	s.client = makeClient(s.T())
-	s.realUuid = "f70dd14f-8e24-11ee-8542-fa163e445fa2"
-	s.nonUuid = "nonUuid"
+	s.realUuid = makeEvent(s.T(), s.client)
 }
 
 func (s *FavSuite) TestAddFav() {
 	s.addFavourite()
 
-	resp, err := s.client.R().SetPathParam("uuid", s.nonUuid).Post("/events/fav/{uuid}/add")
+	resp, err := s.client.R().SetPathParam("uuid", "nonUuid").Post("/events/fav/{uuid}/add")
 	s.Require().NoError(err)
 
 	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "non uuid params should not be accepted")
@@ -42,13 +40,8 @@ func (s *FavSuite) TestAddFav() {
 	s.Require().Equal(resp.StatusCode(), http.StatusNotFound, "non existent events should not be added to favourites")
 }
 
-func (s *FavSuite) TestGetAndDeleteFav() {
+func (s *FavSuite) TestGetFav() {
 	s.addFavourite()
-
-	resp, err := s.client.R().SetPathParam("uuid", s.nonUuid).Post("/events/fav/{uuid}/remove")
-	s.Require().NoError(err)
-
-	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "non uuid params should not be accepted")
 
 	events := s.getFavourites()
 
@@ -63,13 +56,26 @@ func (s *FavSuite) TestGetAndDeleteFav() {
 		s.Require().True(event.FavCount > 0, "a favourite event must have a positive FavCount")
 
 		s.Require().False(event.IsDraft, "drafts cannot be shown as favourites")
+	}
+	s.Require().True(containsAddedFav, "event recently saved to favourites must be returned by get")
+}
 
+func (s *FavSuite) TestDeleteFav() {
+	s.addFavourite()
+
+	resp, err := s.client.R().SetPathParam("uuid", "nonUuid").Post("/events/fav/{uuid}/remove")
+	s.Require().NoError(err)
+
+	s.Require().Equal(resp.StatusCode(), http.StatusBadRequest, "non uuid params should not be accepted")
+
+	events := s.getFavourites()
+
+	for _, event := range events.Object {
 		resp, err = s.client.R().SetPathParam("uuid", event.UUID).Post("/events/fav/{uuid}/remove")
 		s.Require().NoError(err)
 
 		s.Require().Equal(resp.StatusCode(), http.StatusOK)
 	}
-	s.Require().True(containsAddedFav, "event recently saved to favourites must be returned by get")
 
 	events = s.getFavourites()
 
